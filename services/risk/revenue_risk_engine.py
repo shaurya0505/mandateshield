@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-from enum import Enum
 from typing import Optional, Any, Dict
 from pydantic import BaseModel, Field
 
@@ -7,15 +6,7 @@ from domain.models.customer import Customer, CustomerRiskTier
 from domain.models.mandate import Mandate, MandateStatus
 from domain.models.subscription import Subscription, BillingCycle
 from domain.models.payment_attempt import FailureCategory
-
-
-class RecoveryPriorityLevel(str, Enum):
-    """Deterministic priority classification for triage and scheduling."""
-    CRITICAL = "CRITICAL"    # High-value / High-likelihood recovery required immediately
-    HIGH = "HIGH"            # Standard high-value or highly recoverable failure
-    MEDIUM = "MEDIUM"        # Standard priority recovery
-    LOW = "LOW"              # Low value or decaying recovery likelihood
-    NEGLIGIBLE = "NEGLIGIBLE"# Unrecoverable (e.g. revoked mandate, stolen instrument)
+from domain.models.risk_level import RecoveryPriorityLevel
 
 
 class RevenueRiskAssessment(BaseModel):

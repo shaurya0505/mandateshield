@@ -1,8 +1,8 @@
 from services.risk.revenue_risk_engine import (
     RevenueRiskEngine,
     RevenueRiskAssessment,
-    RecoveryPriorityLevel,
 )
+from domain.models.risk_level import RecoveryPriorityLevel
 
 __all__ = [
     "RevenueRiskEngine",

@@ -4,6 +4,9 @@ from domain.models.subscription import Subscription, SubscriptionStatus, Billing
 from domain.models.payment_attempt import PaymentAttempt, PaymentAttemptStatus, FailureCategory
 from domain.models.policy_authorization import PolicyAuthorization, PolicyVerdict
 from domain.models.recovery_case import RecoveryCase
+from domain.models.risk_level import RecoveryPriorityLevel
+from domain.models.historical_timing_signal import HistoricalPaymentTimingSignal
+from domain.models.recovery_context import RecoveryContext
 
 __all__ = [
     "Customer",
@@ -21,4 +24,7 @@ __all__ = [
     "PolicyAuthorization",
     "PolicyVerdict",
     "RecoveryCase",
+    "RecoveryPriorityLevel",
+    "HistoricalPaymentTimingSignal",
+    "RecoveryContext",
 ]
