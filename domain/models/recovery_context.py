@@ -7,7 +7,7 @@ from domain.models.subscription import BillingCycle
 from domain.models.payment_attempt import FailureCategory
 from domain.models.risk_level import RecoveryPriorityLevel
 from domain.models.historical_timing_signal import HistoricalPaymentTimingSignal
-from domain.interfaces.payment_provider import RailHealthMetrics
+from domain.models.rail_health import RailHealthMetrics
 
 
 class RecoveryContext(BaseModel):

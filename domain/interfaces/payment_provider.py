@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Optional, Any
 from pydantic import BaseModel, Field
 from domain.models.mandate import MandateStatus, PaymentMethod, IssuerBank
+from domain.models.rail_health import RailHealthMetrics
 
 
 class ProviderPaymentResult(BaseModel):
@@ -29,17 +30,6 @@ class ProviderMandateStatusResult(BaseModel):
     status: MandateStatus
     max_amount_in_paisa: int
     is_active: bool
-
-
-class RailHealthMetrics(BaseModel):
-    """Statistical health summary for a specific payment rail."""
-    issuer_bank: IssuerBank
-    payment_method: PaymentMethod
-    sample_window_minutes: int
-    total_attempts: int
-    successful_attempts: int
-    success_rate: float = Field(..., ge=0.0, le=1.0)
-    is_degraded: bool
 
 
 class PaymentProvider(ABC):

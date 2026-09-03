@@ -6,7 +6,9 @@ from domain.models.policy_authorization import PolicyAuthorization, PolicyVerdic
 from domain.models.recovery_case import RecoveryCase
 from domain.models.risk_level import RecoveryPriorityLevel
 from domain.models.historical_timing_signal import HistoricalPaymentTimingSignal
+from domain.models.rail_health import RailHealthMetrics
 from domain.models.recovery_context import RecoveryContext
+from domain.models.strategy_proposal import StrategyProposal, StrategyReasonCode, PlannerSource
 
 __all__ = [
     "Customer",
@@ -26,5 +28,9 @@ __all__ = [
     "RecoveryCase",
     "RecoveryPriorityLevel",
     "HistoricalPaymentTimingSignal",
+    "RailHealthMetrics",
     "RecoveryContext",
+    "StrategyProposal",
+    "StrategyReasonCode",
+    "PlannerSource",
 ]

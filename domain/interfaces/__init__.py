@@ -5,6 +5,7 @@ from domain.interfaces.payment_provider import (
     ProviderMandateStatusResult,
     RailHealthMetrics,
 )
+from domain.interfaces.strategy_planner import StrategyPlanner
 
 __all__ = [
     "PaymentProvider",
@@ -12,4 +13,5 @@ __all__ = [
     "ProviderPaymentLinkResult",
     "ProviderMandateStatusResult",
     "RailHealthMetrics",
+    "StrategyPlanner",
 ]
