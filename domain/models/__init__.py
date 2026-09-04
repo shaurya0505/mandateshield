@@ -9,6 +9,7 @@ from domain.models.historical_timing_signal import HistoricalPaymentTimingSignal
 from domain.models.rail_health import RailHealthMetrics
 from domain.models.recovery_context import RecoveryContext
 from domain.models.strategy_proposal import StrategyProposal, StrategyReasonCode, PlannerSource
+from domain.models.execution_result import ExecutionResult, ExecutionStatus
 
 __all__ = [
     "Customer",
@@ -33,4 +34,6 @@ __all__ = [
     "StrategyProposal",
     "StrategyReasonCode",
     "PlannerSource",
+    "ExecutionResult",
+    "ExecutionStatus",
 ]
