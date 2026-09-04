@@ -86,7 +86,9 @@ class RecoveryStateMachine:
             RecoveryState.RECOVERY_ATTEMPTED, # Human operator authorized manual retry/action
             RecoveryState.RECOVERY_SCHEDULED, # Human operator rescheduled action
             RecoveryState.STOPPED,            # Human operator marked case as terminal/written-off
-            RecoveryState.RECOVERED,          # Manual out-of-band payment confirmed
+            RecoveryState.RECOVERED,          # Manual out-of-band payment confirmed or webhook SUCCESS
+            RecoveryState.PAYMENT_FAILED,     # Async webhook confirmed debit failure
+            RecoveryState.HALTED,             # Operator or policy halted case
         },
         RecoveryState.HALTED: {
             RecoveryState.RECOVERY_ELIGIBLE,  # Cooldown elapsed or condition cleared

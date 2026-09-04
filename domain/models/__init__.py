@@ -10,6 +10,8 @@ from domain.models.rail_health import RailHealthMetrics
 from domain.models.recovery_context import RecoveryContext
 from domain.models.strategy_proposal import StrategyProposal, StrategyReasonCode, PlannerSource
 from domain.models.execution_result import ExecutionResult, ExecutionStatus
+from domain.models.webhook_event import WebhookEvent, WebhookEventType, NormalizedWebhookOutcome
+from domain.models.reconciliation_result import ReconciliationResult, ReconciliationStatus
 
 __all__ = [
     "Customer",
@@ -36,4 +38,9 @@ __all__ = [
     "PlannerSource",
     "ExecutionResult",
     "ExecutionStatus",
+    "WebhookEvent",
+    "WebhookEventType",
+    "NormalizedWebhookOutcome",
+    "ReconciliationResult",
+    "ReconciliationStatus",
 ]
