@@ -901,96 +901,275 @@
     </div>
 
     <!-- ================================================================= -->
+    <!-- ================================================================= -->
     <!-- TAB 5: BATCH COUNTERFACTUAL BENCHMARK (M9) -->
     <!-- ================================================================= -->
     <div id="view-eval-demo" class="space-y-6 hidden">
+      <!-- Header -->
       <div class="card p-6 bg-slate-900 border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div class="flex items-center space-x-2">
-            <span class="badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">MILESTONE 9 EVALUATION</span>
-            <span class="text-xs text-slate-400 font-mono">Paired Counterfactual Simulation (Seed = 42)</span>
+            <span class="badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">PAIRED COUNTERFACTUAL BENCHMARK</span>
+            <span class="text-xs text-slate-400 font-mono">Synthetic Replay (Seed = <span id="eval-meta-seed">42</span>)</span>
           </div>
           <h1 class="text-xl font-bold text-white mt-1">3-Way Policy Benchmark Lift Analysis (Synthetic)</h1>
           <p class="text-xs text-slate-400 mt-1">
-            Runs 20 synthetic failure scenarios across NO_RECOVERY, FIXED_RETRY, and MANDATESHIELD under identical seeds.
+            Does MandateShield recover more valuable revenue with fewer unnecessary interventions than simpler policies?
           </p>
         </div>
         <button onclick="runBatchEvaluation()" id="btn-run-eval" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium shadow-lg shadow-emerald-500/20 flex items-center space-x-2 transition">
           <i data-lucide="bar-chart-3" class="h-4 w-4"></i>
-          <span>Run Batch Evaluation (20 Scenarios)</span>
+          <span>Run Batch Evaluation (<span id="eval-btn-count">20</span> Scenarios)</span>
         </button>
       </div>
 
-      <!-- 3-Way Policy Comparison Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="eval-cards-container">
-        <!-- Policy A: NO_RECOVERY -->
-        <div class="card p-5 bg-slate-900 border-slate-800 space-y-4">
-          <div class="border-b border-slate-800 pb-2">
-            <div class="text-xs font-bold text-slate-400 uppercase">Policy A</div>
-            <div class="text-base font-bold text-white">NO RECOVERY</div>
-            <div class="text-[11px] text-slate-500">Zero intervention baseline</div>
+      <!-- Core Principle & Pipeline Flow Banner -->
+      <div class="card p-4 bg-slate-950 border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+        <div class="flex items-start md:items-center space-x-3">
+          <div class="p-2 bg-emerald-500/10 rounded-lg text-emerald-400 border border-emerald-500/20 shrink-0 mt-0.5 md:mt-0">
+            <i data-lucide="git-compare" class="h-5 w-5"></i>
           </div>
-          <div class="space-y-2 text-xs font-mono">
-            <div class="flex justify-between"><span>Recovered Principal:</span> <strong class="text-white" id="eval-no-gross">₹0.00</strong></div>
-            <div class="flex justify-between"><span>Net Recovery:</span> <strong class="text-white" id="eval-no-net">₹0.00</strong></div>
-            <div class="flex justify-between"><span>Recovery Rate:</span> <strong class="text-slate-400" id="eval-no-rate">0.0%</strong></div>
-            <div class="flex justify-between"><span>Retries Attempted:</span> <strong class="text-slate-400" id="eval-no-retries">0</strong></div>
-            <div class="flex justify-between"><span>Contact Index:</span> <strong class="text-slate-400" id="eval-no-contact">0.0</strong></div>
+          <div>
+            <div class="text-xs font-bold text-white font-mono uppercase tracking-wider">
+              Core Principle: Same Scenarios. Different Recovery Policies.
+            </div>
+            <div class="text-[11px] text-slate-400 mt-0.5">
+              Each policy evaluates the exact same seeded synthetic scenarios. Only the recovery policy changes. MandateShield adds context-aware decisioning, deterministic authorization, cautious execution, and webhook reconciliation.
+            </div>
           </div>
         </div>
+        <div class="flex items-center space-x-2 shrink-0 text-xs font-mono">
+          <span class="badge bg-slate-800 text-slate-300 border border-slate-700">Seed: <strong class="text-white ml-1" id="eval-badge-seed">42</strong></span>
+          <span class="badge bg-slate-800 text-slate-300 border border-slate-700">Scenarios: <strong class="text-white ml-1" id="eval-badge-count">20</strong></span>
+        </div>
+      </div>
 
-        <!-- Policy B: FIXED_RETRY -->
-        <div class="card p-5 bg-slate-900 border-slate-800 space-y-4">
-          <div class="border-b border-slate-800 pb-2">
-            <div class="text-xs font-bold text-amber-400 uppercase">Policy B</div>
-            <div class="text-base font-bold text-white">FIXED RETRY</div>
-            <div class="text-[11px] text-slate-500">Naive 24h schedule (3 attempts)</div>
+      <!-- 3-Way Policy Description Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="eval-cards-container">
+        
+        <!-- Policy A: NO RECOVERY -->
+        <div class="card p-4 bg-slate-900 border-slate-800 space-y-2.5">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <span class="text-xs font-bold text-slate-400 uppercase font-mono">Policy A</span>
+            <span class="badge bg-slate-800 text-slate-400 font-mono text-[10px]">ZERO INTERVENTION</span>
           </div>
-          <div class="space-y-2 text-xs font-mono">
-            <div class="flex justify-between"><span>Recovered Principal:</span> <strong class="text-white" id="eval-fixed-gross">--</strong></div>
-            <div class="flex justify-between"><span>Net Recovery:</span> <strong class="text-white" id="eval-fixed-net">--</strong></div>
-            <div class="flex justify-between"><span>Recovery Rate:</span> <strong class="text-amber-400" id="eval-fixed-rate">--</strong></div>
-            <div class="flex justify-between"><span>Retries Attempted:</span> <strong class="text-rose-400" id="eval-fixed-retries">--</strong></div>
-            <div class="flex justify-between"><span>Contact Index:</span> <strong class="text-rose-400" id="eval-fixed-contact">--</strong></div>
+          <div class="text-sm font-bold text-white">NO RECOVERY</div>
+          <p class="text-[11px] text-slate-400 leading-relaxed">
+            Revenue at risk remains unrecovered under this policy. Zero attempts dispatched.
+          </p>
+        </div>
+
+        <!-- Policy B: DETERMINISTIC FIXED-RETRY BASELINE -->
+        <div class="card p-4 bg-slate-900 border-slate-800 space-y-2.5">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <span class="text-xs font-bold text-amber-400 uppercase font-mono">Policy B</span>
+            <span class="badge bg-amber-500/10 text-amber-400 border border-amber-500/20 font-mono text-[10px]">SCHEDULE BASELINE</span>
           </div>
+          <div class="text-sm font-bold text-white">DETERMINISTIC FIXED-RETRY BASELINE</div>
+          <p class="text-[11px] text-slate-400 leading-relaxed">
+            Applies a fixed deterministic retry schedule (24h intervals, max 3 attempts) without contextual intelligence.
+          </p>
         </div>
 
         <!-- Policy C: MANDATESHIELD -->
-        <div class="card p-5 bg-slate-900 border-blue-600/50 space-y-4 card-glow">
-          <div class="border-b border-slate-800 pb-2">
-            <div class="text-xs font-bold text-blue-400 uppercase">Policy C</div>
-            <div class="text-base font-bold text-blue-400">MANDATESHIELD</div>
-            <div class="text-[11px] text-slate-400">Context-Aware AI + Policy Guardian</div>
+        <div class="card p-4 bg-slate-900 border-blue-600/50 space-y-2.5 card-glow">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <span class="text-xs font-bold text-blue-400 uppercase font-mono">Policy C</span>
+            <span class="badge bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono text-[10px]">INTELLIGENT PIPELINE</span>
+          </div>
+          <div class="text-sm font-bold text-blue-400">MANDATESHIELD</div>
+          <p class="text-[11px] text-slate-400 leading-relaxed">
+            Context-aware recovery strategy constrained by deterministic policy authorization.
+          </p>
+        </div>
+
+      </div>
+
+      <!-- 3-Way Policy Metric Comparison Table -->
+      <div class="card p-5 bg-slate-900 border-slate-800 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <h2 class="text-sm font-semibold text-white flex items-center space-x-2">
+            <i data-lucide="table" class="h-4 w-4 text-emerald-400"></i>
+            <span>Head-to-Head Counterfactual Metric Comparison</span>
+          </h2>
+          <span class="text-xs text-slate-400 font-mono">Identical Seeded Fixtures</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs font-mono">
+            <thead>
+              <tr class="border-b border-slate-800 text-slate-400">
+                <th class="py-2.5 px-3 font-semibold">Evaluation Metric</th>
+                <th class="py-2.5 px-3 font-semibold text-slate-400">NO RECOVERY</th>
+                <th class="py-2.5 px-3 font-semibold text-amber-400">FIXED-RETRY BASELINE</th>
+                <th class="py-2.5 px-3 font-semibold text-blue-400">MANDATESHIELD</th>
+                <th class="py-2.5 px-3 font-semibold text-emerald-400">Measured Lift vs Fixed</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60">
+              <tr class="hover:bg-slate-950/40">
+                <td class="py-2.5 px-3 font-sans font-medium text-slate-200">
+                  <div>Gross Recovery</div>
+                  <div class="text-[10px] text-slate-500 font-sans">Successfully recovered principal</div>
+                </td>
+                <td class="py-2.5 px-3 text-slate-400" id="eval-no-gross">₹0.00</td>
+                <td class="py-2.5 px-3 text-slate-200 font-semibold" id="eval-fixed-gross">--</td>
+                <td class="py-2.5 px-3 text-blue-400 font-bold" id="eval-ms-gross">--</td>
+                <td class="py-2.5 px-3 font-bold" id="eval-delta-gross">--</td>
+              </tr>
+              <tr class="hover:bg-slate-950/40">
+                <td class="py-2.5 px-3 font-sans font-medium text-slate-200">
+                  <div>Net Recovery</div>
+                  <div class="text-[10px] text-slate-500 font-sans">Gross principal minus modeled operational costs</div>
+                </td>
+                <td class="py-2.5 px-3 text-slate-400" id="eval-no-net">₹0.00</td>
+                <td class="py-2.5 px-3 text-slate-200 font-semibold" id="eval-fixed-net">--</td>
+                <td class="py-2.5 px-3 text-blue-400 font-bold" id="eval-ms-net">--</td>
+                <td class="py-2.5 px-3 font-bold" id="eval-delta-net">--</td>
+              </tr>
+              <tr class="hover:bg-slate-950/40">
+                <td class="py-2.5 px-3 font-sans font-medium text-slate-200">
+                  <div>Recovery Rate</div>
+                  <div class="text-[10px] text-slate-500 font-sans">Recovered cases / eligible cases</div>
+                </td>
+                <td class="py-2.5 px-3 text-slate-400" id="eval-no-rate">0.0%</td>
+                <td class="py-2.5 px-3 text-amber-400" id="eval-fixed-rate">--</td>
+                <td class="py-2.5 px-3 text-blue-400 font-bold" id="eval-ms-rate">--</td>
+                <td class="py-2.5 px-3 font-bold" id="eval-delta-rate">--</td>
+              </tr>
+              <tr class="hover:bg-slate-950/40">
+                <td class="py-2.5 px-3 font-sans font-medium text-slate-200">
+                  <div>Value-Weighted Recovery Rate</div>
+                  <div class="text-[10px] text-slate-500 font-sans">Gross recovered / total revenue at risk</div>
+                </td>
+                <td class="py-2.5 px-3 text-slate-400" id="eval-no-vw-rate">0.0%</td>
+                <td class="py-2.5 px-3 text-slate-200" id="eval-fixed-vw-rate">--</td>
+                <td class="py-2.5 px-3 text-blue-400 font-bold" id="eval-ms-vw-rate">--</td>
+                <td class="py-2.5 px-3 font-bold" id="eval-delta-vw-rate">--</td>
+              </tr>
+              <tr class="hover:bg-slate-950/40">
+                <td class="py-2.5 px-3 font-sans font-medium text-slate-200">
+                  <div>Customer Contact / Harassment Index</div>
+                  <div class="text-[10px] text-slate-500 font-sans">Internal simulation metric: retries*1.0 + nudges*1.5 + escalations*0.5</div>
+                </td>
+                <td class="py-2.5 px-3 text-slate-400" id="eval-no-contact">0.0</td>
+                <td class="py-2.5 px-3 text-rose-400" id="eval-fixed-contact">--</td>
+                <td class="py-2.5 px-3 text-emerald-400 font-bold" id="eval-ms-contact">--</td>
+                <td class="py-2.5 px-3 text-emerald-400 font-bold" id="eval-delta-contact">--</td>
+              </tr>
+              <tr class="hover:bg-slate-950/40">
+                <td class="py-2.5 px-3 font-sans font-medium text-slate-200">
+                  <div>Unnecessary Retries</div>
+                  <div class="text-[10px] text-slate-500 font-sans">Wasted attempts on unrecoverable / revoked mandates</div>
+                </td>
+                <td class="py-2.5 px-3 text-slate-400" id="eval-no-retries">0</td>
+                <td class="py-2.5 px-3 text-rose-400" id="eval-fixed-retries">--</td>
+                <td class="py-2.5 px-3 text-emerald-400 font-bold" id="eval-ms-retries">--</td>
+                <td class="py-2.5 px-3 text-emerald-400 font-bold" id="eval-delta-retries">--</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Lift Highlights Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Lift vs Deterministic Fixed-Retry Baseline -->
+        <div class="card p-5 bg-slate-900 border-slate-800 space-y-3 border-l-4 border-l-emerald-500">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <h2 class="text-xs font-bold text-emerald-400 uppercase tracking-wider font-mono">
+              Net Recovery Lift vs Deterministic Fixed-Retry Baseline
+            </h2>
+            <span class="badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono text-[10px]">
+              HEAD-TO-HEAD
+            </span>
           </div>
           <div class="space-y-2 text-xs font-mono">
-            <div class="flex justify-between"><span>Recovered Principal:</span> <strong class="text-emerald-400" id="eval-ms-gross">--</strong></div>
-            <div class="flex justify-between"><span>Net Recovery:</span> <strong class="text-emerald-400" id="eval-ms-net">--</strong></div>
-            <div class="flex justify-between"><span>Recovery Rate:</span> <strong class="text-blue-400" id="eval-ms-rate">--</strong></div>
-            <div class="flex justify-between"><span>Retries Attempted:</span> <strong class="text-slate-300" id="eval-ms-retries">--</strong></div>
-            <div class="flex justify-between"><span>Contact Index:</span> <strong class="text-emerald-400" id="eval-ms-contact">--</strong></div>
+            <div class="p-3 bg-slate-950 rounded border border-slate-800 space-y-1.5">
+              <div class="flex justify-between items-center">
+                <span class="text-slate-400">Net Recovery Lift:</span>
+                <strong class="text-sm font-bold text-white" id="eval-lift-fixed-net">--</strong>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-400">Unnecessary Retries Avoided:</span>
+                <strong class="text-emerald-400 font-bold" id="eval-lift-fixed-retries">--</strong>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-400">Customer Friction Reduction:</span>
+                <strong class="text-emerald-400 font-bold" id="eval-lift-fixed-contact">--</strong>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-400">Recovery Rate Delta:</span>
+                <strong class="text-slate-200" id="eval-lift-fixed-rate">--</strong>
+              </div>
+            </div>
+            <p class="text-slate-400 text-[11px] leading-relaxed pt-1">
+              MandateShield adds context-aware decisioning, deterministic authorization, cautious execution, and webhook reconciliation.
+            </p>
+          </div>
+        </div>
+
+        <!-- Lift vs No Recovery Baseline -->
+        <div class="card p-5 bg-slate-900 border-slate-800 space-y-3 border-l-4 border-l-blue-500">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <h2 class="text-xs font-bold text-blue-400 uppercase tracking-wider font-mono">
+              Net Recovery Lift vs No Recovery Baseline
+            </h2>
+            <span class="badge bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono text-[10px]">
+              ABSOLUTE RECOVERY
+            </span>
+          </div>
+          <div class="space-y-2 text-xs font-mono">
+            <div class="p-3 bg-slate-950 rounded border border-slate-800 space-y-1.5">
+              <div class="flex justify-between items-center">
+                <span class="text-slate-400">Gross Principal Recovered:</span>
+                <strong class="text-sm font-bold text-emerald-400" id="eval-lift-no-gross">--</strong>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-400">Net Recovery Lift:</span>
+                <strong class="text-sm font-bold text-white" id="eval-lift-no-net">--</strong>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-400">Absolute Recovery Rate:</span>
+                <strong class="text-blue-400 font-bold" id="eval-lift-no-rate">--</strong>
+              </div>
+            </div>
+            <p class="text-slate-400 text-[11px] leading-relaxed pt-1">
+              Evaluated against zero-intervention default where 100% of revenue at risk remains uncollected.
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action Distribution & Intervention Profile -->
+      <div class="card p-5 bg-slate-900 border-slate-800 space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-800 pb-3">
+          <div>
+            <h2 class="text-sm font-semibold text-white flex items-center space-x-2">
+              <i data-lucide="layers" class="h-4 w-4 text-purple-400"></i>
+              <span>MandateShield Action Distribution & Decision Profile</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Recovery decisions are not equivalent to retries.
+            </p>
+          </div>
+          <span class="badge bg-purple-500/10 text-purple-400 border border-purple-500/20 font-mono text-[11px]">
+            Context-Aware Intelligence
+          </span>
+        </div>
+
+        <div id="eval-actions-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs font-mono">
+          <div class="p-3 bg-slate-950 rounded border border-slate-800 text-slate-400 italic">
+            Run evaluation to view the distribution of orchestrated recovery actions.
           </div>
         </div>
       </div>
 
-      <!-- Lift Summary & Action Distribution -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="card p-5 bg-slate-900 border-slate-800 space-y-3">
-          <h2 class="text-sm font-semibold text-white">Simulated Counterfactual Lift</h2>
-          <div class="space-y-2 text-xs font-mono" id="eval-lift-container">
-            <div class="p-3 bg-slate-950 rounded border border-slate-800 text-slate-400 italic">
-              Run evaluation to view simulated incremental lift metrics.
-            </div>
-          </div>
-        </div>
-
-        <div class="card p-5 bg-slate-900 border-slate-800 space-y-3">
-          <h2 class="text-sm font-semibold text-white">MandateShield Action Distribution</h2>
-          <div class="space-y-2 text-xs font-mono" id="eval-actions-container">
-            <div class="p-3 bg-slate-950 rounded border border-slate-800 text-slate-400 italic">
-              Proves MandateShield chooses intelligent actions (WAIT, SWITCH, STOP) instead of blind retrying.
-            </div>
-          </div>
-        </div>
+      <!-- Synthetic Disclaimer -->
+      <div class="text-center text-[11px] text-slate-500 font-mono py-2">
+        Synthetic benchmark — reproducible with the displayed seed. Modeled simulation costs (₹5.00/retry, ₹2.00/nudge, ₹100.00/concierge) are simulation parameters, not actual provider fees.
       </div>
 
     </div>

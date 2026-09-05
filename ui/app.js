@@ -389,50 +389,140 @@ async function runBatchEvaluation() {
     const ms = data.policy_summaries.MANDATESHIELD;
     const lift = data.lift_metrics;
 
-    // Policy A
-    document.getElementById('eval-no-gross').innerText = `₹${(noRec.gross_recovered_amount_in_paisa/100).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-    document.getElementById('eval-no-net').innerText = `₹${(noRec.net_recovered_amount_in_paisa/100).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-    document.getElementById('eval-no-rate').innerText = `${(noRec.recovery_rate * 100).toFixed(1)}%`;
-    document.getElementById('eval-no-retries').innerText = noRec.total_retries;
-    document.getElementById('eval-no-contact').innerText = noRec.customer_contact_index.toFixed(1);
+    // Metadata
+    const elMetaSeed = document.getElementById('eval-meta-seed');
+    const elBadgeSeed = document.getElementById('eval-badge-seed');
+    const elBadgeCount = document.getElementById('eval-badge-count');
+    const elBtnCount = document.getElementById('eval-btn-count');
 
-    // Policy B
-    document.getElementById('eval-fixed-gross').innerText = `₹${(fixed.gross_recovered_amount_in_paisa/100).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-    document.getElementById('eval-fixed-net').innerText = `₹${(fixed.net_recovered_amount_in_paisa/100).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-    document.getElementById('eval-fixed-rate').innerText = `${(fixed.recovery_rate * 100).toFixed(1)}%`;
-    document.getElementById('eval-fixed-retries').innerText = `${fixed.total_retries} (${fixed.unnecessary_retries_count} unnecessary)`;
-    document.getElementById('eval-fixed-contact').innerText = fixed.customer_contact_index.toFixed(1);
+    if (elMetaSeed) elMetaSeed.innerText = data.seed;
+    if (elBadgeSeed) elBadgeSeed.innerText = data.seed;
+    if (elBadgeCount) elBadgeCount.innerText = data.scenario_count;
+    if (elBtnCount) elBtnCount.innerText = data.scenario_count;
 
-    // Policy C
-    document.getElementById('eval-ms-gross').innerText = `₹${(ms.gross_recovered_amount_in_paisa/100).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-    document.getElementById('eval-ms-net').innerText = `₹${(ms.net_recovered_amount_in_paisa/100).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-    document.getElementById('eval-ms-rate').innerText = `${(ms.recovery_rate * 100).toFixed(1)}%`;
-    document.getElementById('eval-ms-retries').innerText = `${ms.total_retries} (${ms.unnecessary_retries_count} unnecessary)`;
-    document.getElementById('eval-ms-contact').innerText = ms.customer_contact_index.toFixed(1);
+    const formatInr = (paisa) => {
+      const sign = paisa < 0 ? '-' : '';
+      const abs = Math.abs(paisa);
+      return `${sign}₹${(abs / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    };
 
-    // Lift Container
-    const liftContainer = document.getElementById('eval-lift-container');
-    liftContainer.innerHTML = `
-      <div class="p-3 bg-slate-950 rounded border border-slate-800 space-y-1.5">
-        <div class="flex justify-between"><span class="text-slate-400">Net Recovery Lift vs Fixed Retry:</span> <strong class="text-emerald-400 font-mono">₹${(lift.net_recovery_lift_vs_fixed_retry_in_paisa/100).toLocaleString('en-IN', {minimumFractionDigits: 2})}</strong></div>
-        <div class="flex justify-between"><span class="text-slate-400">Recovery Rate Delta:</span> <strong class="text-blue-400 font-mono">${lift.recovery_rate_lift_vs_fixed_retry >= 0 ? '+' : ''}${lift.recovery_rate_lift_vs_fixed_retry}%</strong></div>
-        <div class="flex justify-between"><span class="text-slate-400">Unnecessary Retries Avoided:</span> <strong class="text-emerald-400 font-mono">${lift.retries_avoided_vs_fixed_retry}</strong></div>
-        <div class="flex justify-between"><span class="text-slate-400">Customer Harassment Reduction:</span> <strong class="text-emerald-400 font-mono">${lift.contact_reduction_vs_fixed_retry} index pts</strong></div>
-      </div>
-    `;
+    const formatDeltaInr = (paisa) => {
+      const sign = paisa > 0 ? '+' : (paisa < 0 ? '-' : '');
+      const abs = Math.abs(paisa);
+      return `${sign}₹${(abs / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    };
 
-    // Action Distribution Container
+    // Policy A: NO RECOVERY
+    const elNoGross = document.getElementById('eval-no-gross');
+    const elNoNet = document.getElementById('eval-no-net');
+    const elNoRate = document.getElementById('eval-no-rate');
+    const elNoVwRate = document.getElementById('eval-no-vw-rate');
+    const elNoContact = document.getElementById('eval-no-contact');
+    const elNoRetries = document.getElementById('eval-no-retries');
+
+    if (elNoGross) elNoGross.innerText = formatInr(noRec.gross_recovered_amount_in_paisa);
+    if (elNoNet) elNoNet.innerText = formatInr(noRec.net_recovered_amount_in_paisa);
+    if (elNoRate) elNoRate.innerText = `${(noRec.recovery_rate * 100).toFixed(1)}%`;
+    if (elNoVwRate) elNoVwRate.innerText = `${(noRec.value_weighted_recovery_rate * 100).toFixed(1)}%`;
+    if (elNoContact) elNoContact.innerText = noRec.customer_contact_index.toFixed(1);
+    if (elNoRetries) elNoRetries.innerText = `${noRec.total_retries}`;
+
+    // Policy B: DETERMINISTIC FIXED-RETRY BASELINE
+    const elFixedGross = document.getElementById('eval-fixed-gross');
+    const elFixedNet = document.getElementById('eval-fixed-net');
+    const elFixedRate = document.getElementById('eval-fixed-rate');
+    const elFixedVwRate = document.getElementById('eval-fixed-vw-rate');
+    const elFixedContact = document.getElementById('eval-fixed-contact');
+    const elFixedRetries = document.getElementById('eval-fixed-retries');
+
+    if (elFixedGross) elFixedGross.innerText = formatInr(fixed.gross_recovered_amount_in_paisa);
+    if (elFixedNet) elFixedNet.innerText = formatInr(fixed.net_recovered_amount_in_paisa);
+    if (elFixedRate) elFixedRate.innerText = `${(fixed.recovery_rate * 100).toFixed(1)}%`;
+    if (elFixedVwRate) elFixedVwRate.innerText = `${(fixed.value_weighted_recovery_rate * 100).toFixed(1)}%`;
+    if (elFixedContact) elFixedContact.innerText = fixed.customer_contact_index.toFixed(1);
+    if (elFixedRetries) elFixedRetries.innerText = `${fixed.total_retries} (${fixed.unnecessary_retries_count} unnecessary)`;
+
+    // Policy C: MANDATESHIELD
+    const elMsGross = document.getElementById('eval-ms-gross');
+    const elMsNet = document.getElementById('eval-ms-net');
+    const elMsRate = document.getElementById('eval-ms-rate');
+    const elMsVwRate = document.getElementById('eval-ms-vw-rate');
+    const elMsContact = document.getElementById('eval-ms-contact');
+    const elMsRetries = document.getElementById('eval-ms-retries');
+
+    if (elMsGross) elMsGross.innerText = formatInr(ms.gross_recovered_amount_in_paisa);
+    if (elMsNet) elMsNet.innerText = formatInr(ms.net_recovered_amount_in_paisa);
+    if (elMsRate) elMsRate.innerText = `${(ms.recovery_rate * 100).toFixed(1)}%`;
+    if (elMsVwRate) elMsVwRate.innerText = `${(ms.value_weighted_recovery_rate * 100).toFixed(1)}%`;
+    if (elMsContact) elMsContact.innerText = ms.customer_contact_index.toFixed(1);
+    if (elMsRetries) elMsRetries.innerText = `${ms.total_retries} (${ms.unnecessary_retries_count} unnecessary)`;
+
+    // Deltas in Table vs Fixed Retry
+    const elDeltaGross = document.getElementById('eval-delta-gross');
+    const elDeltaNet = document.getElementById('eval-delta-net');
+    const elDeltaRate = document.getElementById('eval-delta-rate');
+    const elDeltaVwRate = document.getElementById('eval-delta-vw-rate');
+    const elDeltaContact = document.getElementById('eval-delta-contact');
+    const elDeltaRetries = document.getElementById('eval-delta-retries');
+
+    if (elDeltaGross) {
+      elDeltaGross.innerText = formatDeltaInr(lift.gross_recovery_lift_vs_fixed_retry_in_paisa);
+      elDeltaGross.className = `py-2.5 px-3 font-bold ${lift.gross_recovery_lift_vs_fixed_retry_in_paisa >= 0 ? 'text-emerald-400' : 'text-slate-300'}`;
+    }
+    if (elDeltaNet) {
+      elDeltaNet.innerText = formatDeltaInr(lift.net_recovery_lift_vs_fixed_retry_in_paisa);
+      elDeltaNet.className = `py-2.5 px-3 font-bold ${lift.net_recovery_lift_vs_fixed_retry_in_paisa >= 0 ? 'text-emerald-400' : 'text-slate-300'}`;
+    }
+    if (elDeltaRate) {
+      const rateDelta = lift.recovery_rate_lift_vs_fixed_retry;
+      elDeltaRate.innerText = `${rateDelta >= 0 ? '+' : ''}${rateDelta.toFixed(1)}%`;
+      elDeltaRate.className = `py-2.5 px-3 font-bold ${rateDelta >= 0 ? 'text-emerald-400' : 'text-slate-300'}`;
+    }
+    if (elDeltaVwRate) {
+      const vwDelta = (ms.value_weighted_recovery_rate - fixed.value_weighted_recovery_rate) * 100;
+      elDeltaVwRate.innerText = `${vwDelta >= 0 ? '+' : ''}${vwDelta.toFixed(1)}%`;
+      elDeltaVwRate.className = `py-2.5 px-3 font-bold ${vwDelta >= 0 ? 'text-emerald-400' : 'text-slate-300'}`;
+    }
+    if (elDeltaContact) {
+      const contactRed = lift.contact_reduction_vs_fixed_retry;
+      elDeltaContact.innerText = `-${contactRed.toFixed(1)} pts friction`;
+      elDeltaContact.className = 'py-2.5 px-3 font-bold text-emerald-400';
+    }
+    if (elDeltaRetries) {
+      const retriesAvoided = lift.retries_avoided_vs_fixed_retry;
+      elDeltaRetries.innerText = `${retriesAvoided} retries avoided`;
+      elDeltaRetries.className = 'py-2.5 px-3 font-bold text-emerald-400';
+    }
+
+    // Lift Cards
+    const elLiftFixedNet = document.getElementById('eval-lift-fixed-net');
+    const elLiftFixedRetries = document.getElementById('eval-lift-fixed-retries');
+    const elLiftFixedContact = document.getElementById('eval-lift-fixed-contact');
+    const elLiftFixedRate = document.getElementById('eval-lift-fixed-rate');
+
+    if (elLiftFixedNet) elLiftFixedNet.innerText = formatDeltaInr(lift.net_recovery_lift_vs_fixed_retry_in_paisa);
+    if (elLiftFixedRetries) elLiftFixedRetries.innerText = `${lift.retries_avoided_vs_fixed_retry} attempts avoided`;
+    if (elLiftFixedContact) elLiftFixedContact.innerText = `-${lift.contact_reduction_vs_fixed_retry.toFixed(1)} index points`;
+    if (elLiftFixedRate) elLiftFixedRate.innerText = `${lift.recovery_rate_lift_vs_fixed_retry >= 0 ? '+' : ''}${lift.recovery_rate_lift_vs_fixed_retry.toFixed(1)}% delta`;
+
+    const elLiftNoGross = document.getElementById('eval-lift-no-gross');
+    const elLiftNoNet = document.getElementById('eval-lift-no-net');
+    const elLiftNoRate = document.getElementById('eval-lift-no-rate');
+
+    if (elLiftNoGross) elLiftNoGross.innerText = formatInr(lift.gross_recovery_lift_vs_no_recovery_in_paisa);
+    if (elLiftNoNet) elLiftNoNet.innerText = formatInr(lift.net_recovery_lift_vs_no_recovery_in_paisa);
+    if (elLiftNoRate) elLiftNoRate.innerText = `${(ms.recovery_rate * 100).toFixed(1)}% recovery rate`;
+
+    // Action Distribution Cards
     const actionsContainer = document.getElementById('eval-actions-container');
-    actionsContainer.innerHTML = `
-      <div class="p-3 bg-slate-950 rounded border border-slate-800 space-y-2">
-        ${Object.entries(ms.action_distribution).map(([act, cnt]) => `
-          <div class="flex items-center justify-between">
-            <span class="text-slate-300 font-mono">${act}:</span>
-            <span class="badge bg-blue-500/10 text-blue-400 font-mono">${cnt} times</span>
-          </div>
-        `).join('')}
-      </div>
-    `;
+    if (actionsContainer && ms.action_distribution) {
+      actionsContainer.innerHTML = Object.entries(ms.action_distribution).map(([act, cnt]) => `
+        <div class="p-3 bg-slate-950 rounded border border-slate-800 flex items-center justify-between">
+          <span class="text-slate-300 font-mono">${act}</span>
+          <span class="badge bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono font-bold">${cnt} actions dispatched</span>
+        </div>
+      `).join('');
+    }
 
   } catch (err) {
     console.error('Error running batch evaluation:', err);
