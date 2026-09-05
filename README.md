@@ -2,724 +2,170 @@
 
 > **Intelligent recovery for recurring payments — knowing not only when to retry, but when NOT to.**
 
-MandateShield is a payment-recovery system designed for recurring payments and mandates.
+MandateShield is an autonomous revenue recovery engine and safety guardian designed for recurring payments and subscription mandates in India (UPI AutoPay, Card Mandates, e-NACH).
 
-Instead of blindly retrying failed payments, MandateShield combines a **deterministic financial safety layer** with a **contextual AI strategy planner** to determine whether a failed payment should be retried, delayed, routed through another payment path, nudged, escalated, or stopped.
-
-The core principle is simple:
-
-> **AI proposes. Deterministic systems authorize.**
+Instead of blindly retrying failed debits on fixed schedules, MandateShield combines **context-aware strategy planning** with a strict **deterministic Policy Guardian** to determine whether a failed payment should be retried, delayed to coincide with customer salary liquidity, routed through an alternative active mandate, nudged, escalated to concierge operations, or stopped.
 
 ---
 
-## 🚧 Project Status
+## 🛡️ Core Product Invariant
 
-MandateShield is currently under active development as part of the **Razorpay Buildathon — AI Revenue Recovery** track.
+$$\textbf{AI Proposes.} \quad \longrightarrow \quad \textbf{Policy Guardian Authorizes.} \quad \longrightarrow \quad \textbf{Executor Verifies & Dispatches.}$$
 
-### Completed
-
-- [x] Domain entities and financial models
-- [x] Paisa-level integer arithmetic
-- [x] Recovery state machine
-- [x] Deterministic policy authorization model
-- [x] Immutable domain events
-- [x] Payment provider abstraction
-- [x] Deterministic simulation clock
-- [x] Seeded synthetic payment provider
-- [x] Synthetic banking failure scenarios
-- [x] Payment idempotency simulation
-- [x] 20 unit tests passing
-
-### In Progress
-
-- [ ] Failure normalization
-- [ ] Revenue-at-risk engine
-- [ ] Recovery signal aggregation
-- [ ] Contextual AI strategy planner
-- [ ] Deterministic Policy Guardian
-- [ ] Recovery execution workflow
-- [ ] Batch recovery evaluation
-- [ ] Chaos/failure testing
-- [ ] Operations dashboard
+- **No AI direct execution:** LLM models output purely advisory `StrategyProposal` records. AI models are **never** given credentials or authority to debit bank accounts.
+- **Strict Deterministic Policy Guardian:** Evaluates 9 deterministic financial, regulatory, provider, and merchant safety rules. Only an approved evaluation issues a cryptographically bound `PolicyAuthorization` token.
+- **Pure Integer Paisa Financials:** All transactions, risk calculations, and operational fees use integer paisa arithmetic (₹1 = 100 paisa) to eliminate floating-point drift.
 
 ---
 
-# The Problem
+## 🚀 Quickstart: Launching the Command Center
 
-Recurring-payment businesses lose revenue when otherwise recoverable payments fail.
-
-A failed payment does **not** always mean the same thing.
-
-For example:
-
-```text
-Payment Failure
-      │
-      ├── Insufficient funds
-      │
-      ├── Temporary bank failure
-      │
-      ├── Payment rail degradation
-      │
-      ├── Mandate inactive/revoked
-      │
-      ├── Authentication friction
-      │
-      └── Unknown / unsafe condition
-```
-
-A naive recovery system might respond to all of them with:
-
-```text
-PAYMENT FAILED
-      ↓
-RETRY
-      ↓
-RETRY
-      ↓
-RETRY
-      ↓
-STOP
-```
-
-This can result in:
-
-- unnecessary retries
-- poor customer experience
-- wasted recovery attempts
-- recovery attempts at the wrong time
-- avoidable operational costs
-- insufficient auditability
-
-MandateShield takes a different approach.
-
----
-
-# The MandateShield Approach
-
-MandateShield evaluates the context surrounding a payment failure before deciding what should happen next.
-
-It considers signals such as:
-
-- failure category
-- historical payment behavior
-- payment timing patterns
-- mandate status
-- retry history
-- payment rail health
-- issuer/bank behavior
-- transaction amount
-- customer/recovery context
-
-The system can then select from a bounded set of recovery actions:
-
-```text
-RETRY_NOW
-WAIT_AND_RETRY
-SWITCH_PAYMENT_PATH
-GENERATE_PAYMENT_LINK
-SEND_RECOVERY_NUDGE
-ESCALATE_TO_HUMAN
-STOP_RECOVERY
-```
-
-Importantly, **"do nothing right now" is a valid recovery decision.**
-
-For example:
-
-```text
-Aug 28
-₹4,999 recurring payment
-        │
-        ▼
-INSUFFICIENT_FUNDS
-        │
-        ▼
-Historical successful payments:
-Aug 2
-Jul 1
-Jun 3
-        │
-        ▼
-Detected historical payment window
-        │
-        ▼
-AI strategy proposal:
-WAIT_AND_RETRY
-        │
-        ▼
-Deterministic Policy Guardian
-        │
-        ▼
-AUTHORIZED
-        │
-        ▼
-Retry at permitted time
-```
-
-The AI does not directly charge the customer.
-
----
-
-# Architecture
-
-```text
-                         ┌──────────────────────┐
-                         │   Payment Provider   │
-                         │ Razorpay / Simulator │
-                         └──────────┬───────────┘
-                                    │
-                                    ▼
-                         ┌──────────────────────┐
-                         │  Payment Failure     │
-                         │      Event           │
-                         └──────────┬───────────┘
-                                    │
-                                    ▼
-                         ┌──────────────────────┐
-                         │ Failure Normalizer   │
-                         │                      │
-                         │ Provider error       │
-                         │        ↓             │
-                         │ Canonical category   │
-                         └──────────┬───────────┘
-                                    │
-                                    ▼
-                         ┌──────────────────────┐
-                         │  Revenue Risk /      │
-                         │  Context Engine      │
-                         └──────────┬───────────┘
-                                    │
-                                    ▼
-                         ┌──────────────────────┐
-                         │  AI Strategy Planner │
-                         │                      │
-                         │ Contextual reasoning │
-                         │ Bounded action       │
-                         │ Confidence           │
-                         └──────────┬───────────┘
-                                    │
-                                    ▼
-                         ┌──────────────────────┐
-                         │  Policy Guardian     │
-                         │                      │
-                         │ Retry limits         │
-                         │ Cooldowns            │
-                         │ Mandate limits       │
-                         │ Provider rules       │
-                         │ Merchant policies    │
-                         └──────────┬───────────┘
-                                    │
-                              ┌─────┴─────┐
-                              │           │
-                           BLOCK       APPROVE
-                              │           │
-                              │           ▼
-                              │  ┌──────────────────┐
-                              │  │ Recovery         │
-                              │  │ Executor         │
-                              │  └────────┬─────────┘
-                              │           │
-                              │           ▼
-                              │  ┌──────────────────┐
-                              │  │ Payment Provider │
-                              │  └────────┬─────────┘
-                              │           │
-                              └─────┬─────┘
-                                    ▼
-                         ┌──────────────────────┐
-                         │ Audit / Recovery     │
-                         │ Outcome              │
-                         └──────────────────────┘
-```
-
----
-
-# Safety Architecture
-
-MandateShield follows a **fail-closed architecture**.
-
-The AI is intentionally prevented from controlling critical financial operations.
-
-| Responsibility | System |
-|---|---|
-| State transitions | Deterministic |
-| Financial arithmetic | Deterministic |
-| Currency representation | Integer paisa |
-| Retry limits | Deterministic |
-| Mandate limits | Deterministic |
-| Idempotency | Deterministic |
-| Authorization | Deterministic |
-| Policy enforcement | Deterministic |
-| Audit records | Deterministic |
-| Failure normalization | Deterministic |
-| Contextual strategy | AI |
-| Recovery action proposal | AI |
-| Confidence/reasoning | AI |
-
-### Core principle
-
-```text
-                    AI
-                     │
-                     │ proposes
-                     ▼
-             ┌───────────────┐
-             │ Bounded Action│
-             │    Space      │
-             └───────┬───────┘
-                     │
-                     ▼
-          ┌─────────────────────┐
-          │  Policy Guardian    │
-          │                     │
-          │ deterministic       │
-          │ authorization       │
-          └──────────┬──────────┘
-                     │
-              ┌──────┴──────┐
-              │             │
-            BLOCK         APPROVE
-              │             │
-              ▼             ▼
-             STOP         EXECUTE
-```
-
-An invalid or unavailable AI response must **never bypass deterministic controls**.
-
----
-
-# Financial Safety
-
-MandateShield uses integer arithmetic at the domain layer.
-
-Amounts are represented in **paisa**, not floating-point rupees.
-
-```python
-amount_in_paisa = 499900
-```
-
-This avoids floating-point rounding problems in financial calculations.
-
-The domain also enforces:
-
-- positive mandate/subscription amounts
-- valid state transitions
-- terminal state protection
-- mandate limits
-- deterministic authorization
-- idempotent payment operations
-
----
-
-# State Machine
-
-Recovery cases move through explicit states rather than arbitrary status changes.
-
-```text
-PAYMENT_FAILED
-      │
-      ▼
-ANALYZING
-      │
-      ▼
-STRATEGY_PROPOSED
-      │
-      ▼
-POLICY_EVALUATED
-      │
-      ├───────────────┐
-      │               │
-   APPROVED         BLOCKED
-      │               │
-      ▼               ▼
-RECOVERY_ATTEMPTED  STOPPED
-      │
-      ├───────────────┐
-      │               │
-      ▼               ▼
-  RECOVERED       RECOVERY_FAILED
-```
-
-Recovery execution requires deterministic policy authorization.
-
-Terminal states cannot be reactivated.
-
----
-
-# Synthetic Payment Simulator
-
-MandateShield includes a deterministic synthetic payment provider for development and evaluation.
-
-The simulator models conditions such as:
-
-- insufficient funds
-- transient issuer failures
-- bank technical errors
-- payment rail degradation
-- inactive/revoked mandates
-- mandate amount limits
-- successful recovery
-- duplicate payment attempts
-
-The simulator uses:
-
-- seeded randomness
-- deterministic virtual time
-- reproducible scenarios
-- provider-level idempotency caching
-
-This allows identical experiments to be replayed and audited.
-
-### Important design boundary
-
-The simulator models the **environment**.
-
-It does not decide how the recovery system should respond.
-
-```text
-Simulator
-    │
-    │ produces
-    ▼
-Payment Outcome
-    │
-    ▼
-Recovery Intelligence
-    │
-    │ decides
-    ▼
-Recovery Strategy
-```
-
----
-
-# Provider Abstraction
-
-The recovery system interacts with a generic `PaymentProvider` interface.
-
-```text
-                 PaymentProvider
-                       │
-              ┌────────┴────────┐
-              │                 │
-              ▼                 ▼
-   SimulatedPaymentProvider   Future Provider
-              │
-              ▼
-       Synthetic banking
-          environment
-```
-
-This keeps provider-specific infrastructure separate from the financial domain.
-
-Razorpay-specific concepts and mappings are documented separately in:
-
-```text
-docs/RAZORPAY_MAPPING.md
-```
-
----
-
-# Rule Provenance
-
-Financial and operational rules are explicitly categorized.
-
-```text
-REGULATORY_REQUIREMENT
-PROVIDER_RULE
-MERCHANT_POLICY
-SIMULATION_POLICY
-```
-
-This prevents simulation assumptions or merchant policies from being presented as regulatory requirements.
-
-Every future policy decision should preserve its provenance.
-
----
-
-# Testing
-
-Current test suite:
-
-```text
-20 passed
-```
-
-Tests currently cover:
-
-### Domain
-
-- customer validation
-- mandate validation
-- subscription validation
-- recovery-case calculations
-- policy authorization
-- immutable domain events
-- state-machine transitions
-- unauthorized recovery prevention
-- terminal-state protection
-- illegal transitions
-
-### Simulator
-
-- virtual clock behavior
-- deterministic replay
-- liquidity timing scenarios
-- transient issuer failures
-- rail degradation
-- revoked mandates
-- mandate limits
-- provider idempotency
-- payment-link generation
-
-Run the tests with:
-
+### 1. Requirements & Setup
 ```bash
-py -m pytest tests/unit -v
+# Clone the repository
+git clone https://github.com/shaurya0505/mandateshield.git
+cd mandateshield
+
+# Install dependencies (FastAPI, uvicorn, pydantic, etc.)
+pip install -r requirements.txt
+```
+
+### 2. Launch the Application
+```bash
+python run.py
+# Or: uvicorn api.main:app --reload --port 8000
+```
+Open your browser and navigate to: **[http://127.0.0.1:8000](http://127.0.0.1:8000)**
+
+### 3. Run the Automated Test Suite (112 Passing Tests)
+```bash
+py -m pytest tests/unit tests/integration -v
 ```
 
 ---
 
-# Project Structure
+## 🖥️ Command Center Live Demos
+
+The MandateShield Command Center UI provides interactive, real-time visual demonstration of the entire intelligence pipeline:
+
+### 1. Hero Flow: Liquidity Timing Recovery
+- **Customer:** Rahul Mehta | Subscription: ₹4,999.00 / month
+- **Failure:** `INSUFFICIENT_FUNDS` on August 28, 2026.
+- **Timing Signal:** Observed historical successful payments clustered on Day 1–2 of the month.
+- **AI Proposal:** `WAIT_AND_RETRY` (Delay 4 days / 345,600s to September 1, 2026).
+- **Policy Guardian:** Evaluates rules $\rightarrow$ **APPROVED** $\rightarrow$ Issues authorization token.
+- **Execution & Settlement:** Case held in `RECOVERY_SCHEDULED` (0 debits), clock advances to Sept 1, scheduled debit dispatches $\rightarrow$ Webhook HMAC verified $\rightarrow$ Case settled to **`RECOVERED`**.
+
+### 2. Safety Guardian: AI Blocked on Revoked Mandate
+- **Customer:** Deepa Rao | Mandate: `REVOKED` by customer on bank app | Amount: ₹999.00.
+- **Unsafe AI Proposal:** Simulated aggressive AI proposes `RETRY_NOW` (95% confidence).
+- **Policy Guardian:** Intercepts proposal $\rightarrow$ `RULE-PROV-01` (Mandate must be active) fails $\rightarrow$ **BLOCKED**.
+- **Financial Result:** **₹0 debited**, customer protected from harassment and bank bounce fees, case safely moved to **`STOPPED`**.
+
+### 3. Webhook Resilience & Duplicate Protection
+- **Resilience:** Gateway socket drop (504 Timeout) moves case to `ESCALATED` (`AMBIGUOUS_TIMEOUT`) to prevent blind duplicate debits.
+- **Reconciliation:** Asynchronous `payment.captured` webhook arrives $\rightarrow$ HMAC verified $\rightarrow$ correlated $\rightarrow$ settled to `RECOVERED`.
+- **Duplicate Protection:** Replaying the identical webhook is detected by `provider_event_id` $\rightarrow$ **`DUPLICATE_IGNORED`** (₹0 double counted).
+
+### 4. Benchmark Lift & Counterfactual Evaluation (Milestone 9)
+- Evaluates 20 balanced synthetic failure scenarios under 3 paired policies:
+  1. `NO_RECOVERY` (Zero intervention baseline)
+  2. `FIXED_RETRY` (Naive 24h schedule up to 3 attempts)
+  3. `MANDATESHIELD` (Context-aware AI + Policy Guardian)
+- Computes Gross Recovery, Net Recovery (after fees), Value-Weighted Rate, Customer Contact/Harassment Index, and Unnecessary Retries Avoided.
+
+---
+
+## 🏛️ System Architecture
 
 ```text
-mandateshield/
-│
-├── docs/
-│   └── RAZORPAY_MAPPING.md
-│
-├── domain/
-│   ├── events/
-│   ├── interfaces/
-│   ├── models/
-│   ├── policies/
-│   └── states/
-│
-├── infrastructure/
-│   └── simulation/
-│
-├── services/
-│
-├── tests/
-│   └── unit/
-│
-├── .env.example
-├── .gitignore
-└── requirements.txt
+       Incoming Failure Event (e.g. INSUFFICIENT_FUNDS)
+                             │
+                             ▼
+                   [FailureNormalizer]
+                 (Canonical Failure Mode)
+                             │
+                             ▼
+                   [RevenueRiskEngine]
+           (Exposure in Paisa & Priority Score)
+                             │
+                             ▼
+               [HistoricalTimingExtractor]
+              (Day-of-Month Timing Cluster)
+                             │
+                             ▼
+                     [RecoveryContext]
+               (Immutable Factual Envelope)
+                             │
+                             ▼
+                  [AI Strategy Planner]
+                (Proposes StrategyProposal)
+                             │
+                     [SAFETY BARRIER]
+                             │
+                             ▼
+                    [PolicyGuardian]
+        (Enforces Merchant, Provider & Legal Rules)
+                             │
+                  ┌──────────┴──────────┐
+                  ▼                     ▼
+             [ APPROVED ]          [ BLOCKED ]
+                  │                     │
+                  ▼                     ▼
+         [PolicyAuthorization]     [Safe Stop]
+                  │
+                  ▼
+          [RecoveryExecutor]
+         (PaymentProvider Call)
+                  │
+                  ▼
+          [WebhookReconciler]
+         (HMAC Verification &
+         Asynchronous Settlement)
+                  │
+                  ▼
+            [ RECOVERED ]
 ```
 
-The project follows a separation between:
+---
+
+## ⚖️ Fintech & Regulatory Clarifications
+
+1. **Regulatory Precision:** Mandatory 24h retry cooldowns and 3-retry caps are modeled as **`MERCHANT_POLICY`**, not regulatory statutes.
+2. **Timing Signals:** MandateShield does **not** claim knowledge of external customer salary or employer payroll dates. Signals are strictly derived from observed historical payment timestamps (`HISTORICAL_PAYMENT_WINDOW`).
+3. **AI Confidence vs Calibrated Probability:** `StrategyProposal.strategy_confidence` is purely model self-reported confidence, **never** treated as a statistical debt collection probability.
+4. **Synthetic Counterfactuals:** Benchmark lift metrics represent paired simulation differences under controlled failure models, not real-world causal econometric claims.
+
+---
+
+## 📜 Repository Structure
 
 ```text
-Domain
-   ↓
-Application / Services
-   ↓
-Infrastructure
+MandateShield/
+├── api/                     # FastAPI backend & demo orchestration services
+│   ├── main.py              # Application entry point & static file routing
+│   ├── routes.py            # REST endpoints for Command Center
+│   └── demo_service.py      # Real domain service orchestration for interactive demos
+├── domain/                  # Framework-independent domain core
+│   ├── models/              # Immutable Pydantic models (Customer, Mandate, Case, Events)
+│   ├── states/              # RecoveryState finite state machine
+│   └── interfaces/          # Provider & Strategy Planner abstractions
+├── infrastructure/          # Simulation & Security Infrastructure
+│   ├── simulation/          # SimulatedPaymentProvider, SimulationClock, ScenarioGenerator
+│   └── security/            # SimulatedWebhookVerifier (HMAC-SHA256 verification)
+├── services/                # Pure domain services
+│   ├── ingestion/           # FailureNormalizer
+│   ├── risk/                # RevenueRiskEngine
+│   ├── signals/             # HistoricalTimingExtractor & RecoveryContextBuilder
+│   ├── ai/                  # GeminiStrategyPlanner & DeterministicFallbackPlanner
+│   ├── policy/              # PolicyGuardian (9 deterministic rules)
+│   ├── executor/            # RecoveryExecutor (In-process idempotency & dispatch)
+│   ├── reconciliation/      # WebhookReconciler (Deduplication & async settlement)
+│   └── evaluation/          # BatchEvaluator, ScenarioRunner, MetricsCalculator
+├── ui/                      # Fintech Command Center Frontend
+│   ├── index.html           # Command Center single-page dashboard
+│   ├── app.js               # Client-side telemetry & demo controllers
+│   └── styles.css           # Custom fintech dark theme stylesheet
+├── tests/                   # 112 automated unit and integration tests
+└── run.py                   # Single-command server launcher
 ```
-
-The domain layer remains independent of external frameworks wherever practical.
-
----
-
-# Development Roadmap
-
-MandateShield is being developed in vertical slices.
-
-## Slice 1 — Financial Core
-
-- [x] Domain models
-- [x] State machine
-- [x] Domain events
-- [x] Policy authorization model
-- [x] Payment provider abstraction
-- [x] Synthetic payment simulator
-- [ ] Failure normalization
-- [ ] Revenue risk engine
-- [ ] Slice 1 integration test
-
-## Slice 2 — Recovery Intelligence
-
-- [ ] Recovery signal aggregation
-- [ ] Customer/payment context builder
-- [ ] Historical payment timing signals
-- [ ] Recovery strategy model
-- [ ] Contextual AI strategy planner
-
-## Slice 3 — Safe Execution
-
-- [ ] Policy Guardian
-- [ ] Recovery executor
-- [ ] Idempotent execution
-- [ ] Audit ledger
-- [ ] Recovery outcome tracking
-
-## Slice 4 — Evaluation & Operations
-
-- [ ] Baseline recovery strategy
-- [ ] MandateShield strategy
-- [ ] Batch simulation
-- [ ] Recovery lift metrics
-- [ ] Chaos Lab
-- [ ] Operations dashboard
-- [ ] End-to-end demo
-
----
-
-# Evaluation Strategy
-
-MandateShield will eventually be evaluated against recovery baselines rather than only individual examples.
-
-The planned comparison is:
-
-```text
-                    Payment Failures
-                           │
-             ┌─────────────┼─────────────┐
-             │             │             │
-             ▼             ▼             ▼
-        No Recovery    Fixed Retry   MandateShield
-                                      │
-                                      ▼
-                               Contextual Strategy
-```
-
-Key metrics will include:
-
-- gross recovery
-- net recovery
-- recovery rate
-- recovery lift vs no recovery
-- recovery lift vs fixed retry
-- unnecessary recovery attempts
-- notification/harassment rate
-- recovery cost
-- policy violations blocked
-
-The goal is not simply to maximize retries.
-
-The goal is to maximize **safe, economically meaningful recovery**.
-
----
-
-# Why AI?
-
-MandateShield does not use an LLM for deterministic financial rules.
-
-The AI layer is useful where contextual reasoning is required.
-
-For example:
-
-```text
-Failure:
-INSUFFICIENT_FUNDS
-
-Context:
-- historically successful subscription
-- recurring payment timing pattern
-- recent failure
-- healthy payment rail
-- retry history within policy
-- customer value context
-```
-
-The AI can use these signals to propose:
-
-```text
-WAIT_AND_RETRY
-```
-
-with structured reasoning and confidence.
-
-The deterministic layer then decides whether that action is actually permitted.
-
----
-
-# Design Philosophy
-
-MandateShield is built around five principles:
-
-### 1. AI proposes, deterministic systems authorize
-
-No LLM response can directly bypass financial controls.
-
-### 2. Recovery does not always mean retry
-
-Sometimes the optimal action is to wait, switch paths, escalate, or stop.
-
-### 3. Financial correctness comes before AI sophistication
-
-State, money, authorization, idempotency, and policy enforcement remain deterministic.
-
-### 4. Every decision should be explainable
-
-Recovery decisions should preserve the context, proposed action, policy evaluation, and eventual outcome.
-
-### 5. Simulation before production integration
-
-The system is developed against a deterministic synthetic environment before any live-provider integration is considered.
-
----
-
-# Tech Stack
-
-### Backend
-
-- Python
-- FastAPI
-- Pydantic
-- PostgreSQL
-- SQLAlchemy
-
-### AI
-
-- Google Gemini
-- Structured JSON strategy outputs
-
-### Frontend
-
-- Next.js
-- React
-- TypeScript
-
-### Testing
-
-- Pytest
-- Property-based testing where appropriate
-
-### Infrastructure
-
-- Synthetic payment provider
-- Deterministic simulation clock
-- Provider abstraction
-
----
-
-# Current Focus
-
-The current development focus is:
-
-> **Failure Normalization + Revenue Risk Engine**
-
-The next milestone will transform raw provider outcomes into canonical financial failure categories and calculate deterministic revenue-at-risk and recovery priority.
-
----
-
-# Disclaimer
-
-MandateShield is a **synthetic research and hackathon project**.
-
-Payment behavior, banking conditions, recovery outcomes, and customer data used in simulations are synthetic.
-
-Provider-specific behavior is implemented only where documented or explicitly marked as simulation behavior.
-
-This project is not intended to initiate real customer charges without appropriate production controls, provider integration, compliance review, and authorization.
-
----
-
-## Author
-
-**Shaurya Agarwal**
-
-Built as part of the **Razorpay Buildathon — AI Revenue Recovery** track.

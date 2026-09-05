@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MandateShield | Autonomous Mandate Recovery Engine</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body class="bg-slate-950 text-slate-100 antialiased selection:bg-blue-600 selection:text-white">
+
+  <!-- TOP APP BAR -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="h-9 w-9 rounded-lg bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+          <i data-lucide="shield-check" class="h-5 w-5 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="font-bold tracking-tight text-lg text-white">MandateShield</span>
+            <span class="text-xs px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono font-medium">RECOVERY COMMAND CENTER</span>
+          </div>
+          <p class="text-xs text-slate-400 hidden sm:block">Intelligent Recurring Payment Recovery & Safety Guardian for India Subscriptions</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center space-x-1 bg-slate-800/80 p-1 rounded-lg border border-slate-700/60">
+        <button onclick="switchTab('overview')" id="tab-overview" class="nav-tab active px-3 py-1.5 rounded-md text-xs font-medium text-slate-200 bg-slate-700 transition">
+          Overview
+        </button>
+        <button onclick="switchTab('hero-demo')" id="tab-hero-demo" class="nav-tab px-3 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-slate-200 transition">
+          Hero Recovery
+        </button>
+        <button onclick="switchTab('safety-demo')" id="tab-safety-demo" class="nav-tab px-3 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-slate-200 transition">
+          Safety Barrier
+        </button>
+        <button onclick="switchTab('webhook-demo')" id="tab-webhook-demo" class="nav-tab px-3 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-slate-200 transition">
+          Webhook & Resilience
+        </button>
+        <button onclick="switchTab('eval-demo')" id="tab-eval-demo" class="nav-tab px-3 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-slate-200 transition">
+          Benchmark Lift (M9)
+        </button>
+      </nav>
+
+      <!-- Quick Actions -->
+      <div class="flex items-center space-x-3">
+        <button onclick="resetDemoState()" class="text-xs px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center space-x-1.5 transition">
+          <i data-lucide="rotate-ccw" class="h-3.5 w-3.5"></i>
+          <span>Reset State</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- SYNTHETIC DATA & SIMULATION NOTICE BANNER -->
+  <div class="bg-blue-950/40 border-b border-blue-800/40 px-4 py-2 text-center text-xs text-blue-300 font-mono">
+    <span>ℹ️ <strong>SYNTHETIC DEMO ENVIRONMENT:</strong> All customer names, bank mandates, payment failures, and costs (₹5.00/retry) are modeled simulation fixtures. Real-world payments remain untouched.</span>
+  </div>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- ================================================================= -->
+    <!-- TAB 1: COMMAND CENTER OVERVIEW -->
+    <!-- ================================================================= -->
+    <div id="view-overview" class="space-y-8">
+      
+      <!-- Banner / Title -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-white">Operations & Recovery Telemetry</h1>
+          <p class="text-sm text-slate-400 mt-1">Autonomous intelligence for recurring mandate failures on India payment rails (UPI AutoPay / Cards / e-NACH).</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse mr-1.5"></span> Engine Online
+          </span>
+          <span class="text-xs text-slate-400 font-mono bg-slate-900 px-2 py-1 rounded border border-slate-800">Deterministic Guardian: ACTIVE</span>
+        </div>
+      </div>
+
+      <!-- KPI Stat Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="card p-5 bg-slate-900/90 border-slate-800">
+          <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
+            <span>Revenue at Risk</span>
+            <i data-lucide="alert-circle" class="h-4 w-4 text-amber-400"></i>
+          </div>
+          <div class="mt-2 text-2xl font-bold font-mono text-white" id="stat-at-risk">₹10,496.00</div>
+          <div class="mt-1 text-xs text-slate-400">Across 4 active failure cases</div>
+        </div>
+
+        <div class="card p-5 bg-slate-900/90 border-slate-800">
+          <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
+            <span>Recovered Principal</span>
+            <i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-400"></i>
+          </div>
+          <div class="mt-2 text-2xl font-bold font-mono text-emerald-400" id="stat-recovered">₹1,999.00</div>
+          <div class="mt-1 text-xs text-slate-400">Net after simulated cost: ₹1,994.00</div>
+        </div>
+
+        <div class="card p-5 bg-slate-900/90 border-slate-800">
+          <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
+            <span>Recovery Rate</span>
+            <i data-lucide="trending-up" class="h-4 w-4 text-blue-400"></i>
+          </div>
+          <div class="mt-2 text-2xl font-bold font-mono text-blue-400" id="stat-rate">25.0%</div>
+          <div class="mt-1 text-xs text-slate-400">Target recovery lift vs baseline: +100%</div>
+        </div>
+
+        <div class="card p-5 bg-slate-900/90 border-slate-800">
+          <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
+            <span>Policy Interceptions</span>
+            <i data-lucide="shield-alert" class="h-4 w-4 text-purple-400"></i>
+          </div>
+          <div class="mt-2 text-2xl font-bold font-mono text-purple-400">100%</div>
+          <div class="mt-1 text-xs text-slate-400">0 unverified debits executed</div>
+        </div>
+      </div>
+
+      <!-- Core Architectural Invariant Pipeline Flow -->
+      <div class="card p-6 bg-slate-900 border-slate-800">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300 mb-4 flex items-center space-x-2">
+          <i data-lucide="cpu" class="h-4 w-4 text-blue-400"></i>
+          <span>MandateShield Invariant Architecture: AI Proposes. Policy Guardian Authorizes.</span>
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-6 gap-2 text-center text-xs">
+          <div class="bg-slate-950 p-3 rounded border border-slate-800">
+            <div class="font-bold text-rose-400 mb-1">1. Failure Ingest</div>
+            <p class="text-slate-400 text-[11px]">Normalized Error Category</p>
+          </div>
+          <div class="bg-slate-950 p-3 rounded border border-slate-800">
+            <div class="font-bold text-amber-400 mb-1">2. Risk Engine</div>
+            <p class="text-slate-400 text-[11px]">Priority & Exposure (Paisa)</p>
+          </div>
+          <div class="bg-slate-950 p-3 rounded border border-slate-800">
+            <div class="font-bold text-indigo-400 mb-1">3. Context Envelope</div>
+            <p class="text-slate-400 text-[11px]">Historical Timing (Day 1-2)</p>
+          </div>
+          <div class="bg-blue-950/40 p-3 rounded border border-blue-800/60">
+            <div class="font-bold text-blue-400 mb-1">4. AI Advisory</div>
+            <p class="text-slate-400 text-[11px]">Strategy Proposal (Advisory)</p>
+          </div>
+          <div class="bg-purple-950/40 p-3 rounded border border-purple-800/60">
+            <div class="font-bold text-purple-400 mb-1">5. Policy Guardian</div>
+            <p class="text-slate-400 text-[11px]">Deterministic Safety Check</p>
+          </div>
+          <div class="bg-emerald-950/40 p-3 rounded border border-emerald-800/60">
+            <div class="font-bold text-emerald-400 mb-1">6. Executor & Webhook</div>
+            <p class="text-slate-400 text-[11px]">Authorized Settlement</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Recovery Cases Table -->
+      <div class="card bg-slate-900 border-slate-800 overflow-hidden">
+        <div class="p-5 border-b border-slate-800 flex justify-between items-center">
+          <div>
+            <h2 class="font-semibold text-white">Active Recovery Pipeline Cases</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Synthetic failure scenarios currently in the recovery lifecycle.</p>
+          </div>
+          <button onclick="switchTab('hero-demo')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-medium transition flex items-center space-x-1">
+            <span>Launch Hero Demo</span>
+            <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-950/80 text-slate-400 uppercase tracking-wider font-mono">
+              <tr>
+                <th class="py-3 px-4">Case ID</th>
+                <th class="py-3 px-4">Customer (Synthetic)</th>
+                <th class="py-3 px-4">Revenue at Risk</th>
+                <th class="py-3 px-4">Current Status</th>
+                <th class="py-3 px-4">Total Attempts</th>
+                <th class="py-3 px-4">Recovered Principal</th>
+                <th class="py-3 px-4 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="cases-table-body" class="divide-y divide-slate-800 text-slate-300 font-mono">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- TAB 2: HERO RECOVERY DEMO (LIQUIDITY WINDOW FLOW) -->
+    <!-- ================================================================= -->
+    <div id="view-hero-demo" class="space-y-6 hidden">
+      
+      <!-- Hero Scenario Header -->
+      <div class="card p-6 bg-slate-900 border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="badge bg-blue-500/10 text-blue-400 border border-blue-500/20">PRIMARY DEMO SCENARIO</span>
+            <span class="text-xs text-slate-400 font-mono">Synthetic Case: case_hero_1029</span>
+          </div>
+          <h1 class="text-xl font-bold text-white mt-1">Rahul Mehta (Synthetic) — Liquidity Timing Recovery (₹4,999.00)</h1>
+          <p class="text-xs text-slate-400 mt-1">
+            Debit failed on August 28th with INSUFFICIENT_FUNDS. Historical timing shows salary liquidity on Day 1–2.
+          </p>
+        </div>
+        <div class="flex items-center space-x-3">
+          <button onclick="runHeroScenario()" id="btn-run-hero" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium shadow-lg shadow-blue-500/20 flex items-center space-x-2 transition">
+            <i data-lucide="play" class="h-4 w-4"></i>
+            <span>Run Recovery Simulation</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 Core Panels Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Panel 1: Recovery Case Context -->
+        <div class="card p-5 bg-slate-900 border-slate-800 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h2 class="text-sm font-semibold text-white flex items-center space-x-2">
+              <i data-lucide="file-text" class="h-4 w-4 text-blue-400"></i>
+              <span>1. Recovery Case Context</span>
+            </h2>
+            <span class="badge bg-amber-500/10 text-amber-400 border border-amber-500/20" id="hero-status-badge">PAYMENT_FAILED</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 text-xs">
+            <div class="p-3 bg-slate-950 rounded border border-slate-800">
+              <div class="text-slate-400">Amount at Risk</div>
+              <div class="text-lg font-bold font-mono text-white mt-0.5" id="hero-amount">₹4,999.00</div>
+            </div>
+            <div class="p-3 bg-slate-950 rounded border border-slate-800">
+              <div class="text-slate-400">Failure Category</div>
+              <div class="text-sm font-semibold font-mono text-rose-400 mt-1">INSUFFICIENT_FUNDS</div>
+            </div>
+            <div class="p-3 bg-slate-950 rounded border border-slate-800">
+              <div class="text-slate-400">Historical Payment Window</div>
+              <div class="text-sm font-semibold font-mono text-indigo-400 mt-1" id="hero-timing">Day 1–2 of Month</div>
+            </div>
+            <div class="p-3 bg-slate-950 rounded border border-slate-800">
+              <div class="text-slate-400">Next Actionable Window</div>
+              <div class="text-sm font-semibold font-mono text-emerald-400 mt-1" id="hero-next-date">September 1, 2026</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 2: AI Strategy Proposal -->
+        <div class="card p-5 bg-slate-900 border-slate-800 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h2 class="text-sm font-semibold text-white flex items-center space-x-2">
+              <i data-lucide="sparkles" class="h-4 w-4 text-sky-400"></i>
+              <span>2. AI Strategy Proposal</span>
+            </h2>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-mono">
+              AI ADVISORY — NOT AUTHORIZATION
+            </span>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div class="p-3 bg-slate-950 rounded border border-slate-800 flex items-center justify-between">
+              <div>
+                <span class="text-slate-400">Recommended Action:</span>
+                <span class="ml-2 font-bold font-mono text-sky-400 text-sm" id="hero-ai-action">WAIT_AND_RETRY</span>
+              </div>
+              <span class="badge bg-slate-800 text-slate-300 font-mono" id="hero-ai-source">DETERMINISTIC_FALLBACK</span>
+            </div>
+
+            <div class="p-3 bg-slate-950 rounded border border-slate-800">
+              <div class="text-slate-400 mb-1">AI Reasoning & Timing Rationale:</div>
+              <p class="text-slate-300 leading-relaxed font-mono text-[11px]" id="hero-ai-rationale">
+                Delay retry by 4 days (345,600s) to align with historical Day 1 salary liquidity cluster (Sept 1, 2026). Avoids wasted bank rejection penalties.
+              </p>
+            </div>
+
+            <div class="flex items-center justify-between text-[11px] text-slate-400 px-1">
+              <span>Model Confidence: <strong class="text-white font-mono" id="hero-ai-conf">0.92 (Model Score, Not Recovery Prob.)</strong></span>
+              <span>Delay: <strong class="text-white font-mono">4 Days (345,600s)</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 3: Deterministic Policy Guardian -->
+        <div class="card p-5 bg-slate-900 border-slate-800 space-y-4 md:col-span-2">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div class="flex items-center space-x-2">
+              <i data-lucide="shield-check" class="h-4 w-4 text-emerald-400"></i>
+              <span class="text-sm font-semibold text-white">3. Deterministic Policy Guardian (Safety Barrier)</span>
+            </div>
+            <span class="badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs px-3 py-1 font-mono font-bold" id="hero-policy-verdict">
+              DECISION: APPROVED
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs" id="hero-rules-grid">
+            <div class="p-2.5 bg-slate-950 rounded border border-slate-800 flex items-start space-x-2">
+              <i data-lucide="check" class="h-4 w-4 text-emerald-400 shrink-0 mt-0.5"></i>
+              <div>
+                <div class="font-bold text-white font-mono">RULE-SIM-01</div>
+                <div class="text-slate-400 text-[11px]">Action Enum Space Valid</div>
+              </div>
+            </div>
+            <div class="p-2.5 bg-slate-950 rounded border border-slate-800 flex items-start space-x-2">
+              <i data-lucide="check" class="h-4 w-4 text-emerald-400 shrink-0 mt-0.5"></i>
+              <div>
+                <div class="font-bold text-white font-mono">RULE-STATE-01</div>
+                <div class="text-slate-400 text-[11px]">Active Recovery State (Non-Terminal)</div>
+              </div>
+            </div>
+            <div class="p-2.5 bg-slate-950 rounded border border-slate-800 flex items-start space-x-2">
+              <i data-lucide="check" class="h-4 w-4 text-emerald-400 shrink-0 mt-0.5"></i>
+              <div>
+                <div class="font-bold text-white font-mono">RULE-PROV-01</div>
+                <div class="text-slate-400 text-[11px]">Mandate Status ACTIVE</div>
+              </div>
+            </div>
+            <div class="p-2.5 bg-slate-950 rounded border border-slate-800 flex items-start space-x-2">
+              <i data-lucide="check" class="h-4 w-4 text-emerald-400 shrink-0 mt-0.5"></i>
+              <div>
+                <div class="font-bold text-white font-mono">RULE-PROV-02</div>
+                <div class="text-slate-400 text-[11px]">Amount Within Mandate Cap</div>
+              </div>
+            </div>
+            <div class="p-2.5 bg-slate-950 rounded border border-slate-800 flex items-start space-x-2">
+              <i data-lucide="check" class="h-4 w-4 text-emerald-400 shrink-0 mt-0.5"></i>
+              <div>
+                <div class="font-bold text-white font-mono">RULE-MERCH-01</div>
+                <div class="text-slate-400 text-[11px]">Max Retry Cap Respected (0/3)</div>
+              </div>
+            </div>
+            <div class="p-2.5 bg-slate-950 rounded border border-slate-800 flex items-start space-x-2">
+              <i data-lucide="check" class="h-4 w-4 text-emerald-400 shrink-0 mt-0.5"></i>
+              <div>
+                <div class="font-bold text-white font-mono">RULE-MERCH-02</div>
+                <div class="text-slate-400 text-[11px]">Retry Cooldown Respected</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 4: Execution & Webhook Timeline -->
+        <div class="card p-5 bg-slate-900 border-slate-800 space-y-4 md:col-span-2">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h2 class="text-sm font-semibold text-white flex items-center space-x-2">
+              <i data-lucide="clock" class="h-4 w-4 text-purple-400"></i>
+              <span>4. Execution & Webhook Settlement Timeline</span>
+            </h2>
+            <div class="text-xs text-slate-400 font-mono">Real Domain Service Telemetry</div>
+          </div>
+
+          <div id="hero-timeline-container" class="space-y-4">
+            <div class="text-xs text-slate-400 italic">Click "Run Recovery Simulation" to step through execution.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- TAB 3: SAFETY BARRIER DEMO (AI BLOCKED BY POLICY) -->
+    <!-- ================================================================= -->
+    <div id="view-safety-demo" class="space-y-6 hidden">
+      <div class="card p-6 bg-slate-900 border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="badge bg-rose-500/10 text-rose-400 border border-rose-500/20">SAFETY GUARDRAIL DEMO</span>
+            <span class="text-xs text-slate-400 font-mono">Synthetic Customer: Deepa Rao | Mandate: REVOKED</span>
+          </div>
+          <h1 class="text-xl font-bold text-white mt-1">AI Proposal Intercepted & Blocked</h1>
+          <p class="text-xs text-slate-400 mt-1">
+            Demonstrates an aggressive AI model proposing RETRY_NOW on a revoked mandate. Policy Guardian intercepts and blocks debit.
+          </p>
+        </div>
+        <button onclick="runSafetyDemo()" id="btn-run-safety" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-sm font-medium shadow-lg shadow-rose-500/20 flex items-center space-x-2 transition">
+          <i data-lucide="shield-alert" class="h-4 w-4"></i>
+          <span>Execute Safety Interception</span>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- AI Panel -->
+        <div class="card p-5 bg-slate-900 border-slate-800 space-y-4 border-l-4 border-l-rose-500">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h2 class="text-sm font-bold text-rose-400 flex items-center space-x-2">
+              <i data-lucide="sparkles" class="h-4 w-4"></i>
+              <span>AI Proposal (Unsafe)</span>
+            </h2>
+            <span class="badge bg-rose-500/10 text-rose-400 font-mono">UNAUTHORIZED</span>
+          </div>
+          <div class="space-y-3 text-xs">
+            <div class="p-3 bg-slate-950 rounded border border-slate-800">
+              <div class="text-slate-400">Proposed Action:</div>
+              <div class="text-lg font-bold font-mono text-rose-400 mt-0.5">RETRY_NOW</div>
+            </div>
+            <div class="p-3 bg-slate-950 rounded border border-slate-800">
+              <div class="text-slate-400">Model Confidence:</div>
+              <div class="text-sm font-semibold font-mono text-slate-200 mt-0.5">0.95 (High Confidence Advisory)</div>
+            </div>
+            <div class="p-3 bg-slate-950 rounded border border-slate-800 text-slate-400">
+              AI attempted to force immediate retry despite mandate token being cancelled on the customer's banking app.
+            </div>
+          </div>
+        </div>
+
+        <!-- Policy Guardian Barrier Panel -->
+        <div class="card p-5 bg-slate-900 border-slate-800 space-y-4 border-l-4 border-l-emerald-500">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h2 class="text-sm font-bold text-emerald-400 flex items-center space-x-2">
+              <i data-lucide="shield-check" class="h-4 w-4"></i>
+              <span>Policy Guardian Decision</span>
+            </h2>
+            <span class="badge bg-rose-500/20 text-rose-300 font-mono font-bold">VERDICT: BLOCKED</span>
+          </div>
+          <div class="space-y-3 text-xs">
+            <div class="p-3 bg-slate-950 rounded border border-slate-800">
+              <div class="text-slate-400">Failing Rule:</div>
+              <div class="text-sm font-bold font-mono text-rose-400 mt-0.5">RULE-PROV-01: Mandate Active Status Check</div>
+            </div>
+            <div class="p-3 bg-slate-950 rounded border border-slate-800">
+              <div class="text-slate-400">Rejection Reason:</div>
+              <div class="text-xs font-mono text-slate-300 mt-0.5">Mandate status is 'REVOKED'. Automated debit prohibited.</div>
+            </div>
+            <div class="p-3 bg-slate-950 rounded border border-slate-800 text-emerald-400 font-medium">
+              ✓ Zero debits executed. Customer protected from illegal bank debits and penalty fees. Case safely transitioned to STOPPED.
+            </div>
+          </div>
+        </div>
+
+        <!-- Safety Timeline -->
+        <div class="card p-5 bg-slate-900 border-slate-800 space-y-4 md:col-span-2">
+          <h2 class="text-sm font-semibold text-white">Safety Audit Trail</h2>
+          <div id="safety-timeline-container" class="space-y-3 text-xs">
+            <div class="text-slate-400 italic">Click "Execute Safety Interception" to view audit trace.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- TAB 4: WEBHOOK & RESILIENCE DEMO -->
+    <!-- ================================================================= -->
+    <div id="view-webhook-demo" class="space-y-6 hidden">
+      <div class="card p-6 bg-slate-900 border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="badge bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">RESILIENCE & DEDUPLICATION</span>
+            <span class="text-xs text-slate-400 font-mono">Gateway Timeout & Webhook Reconciliation</span>
+          </div>
+          <h1 class="text-xl font-bold text-white mt-1">Asynchronous Settlement & Duplicate Protection</h1>
+          <p class="text-xs text-slate-400 mt-1">
+            Simulates a 504 gateway timeout, asynchronous webhook arrival, and deduplication against repeated deliveries.
+          </p>
+        </div>
+        <button onclick="runWebhookDemo()" id="btn-run-webhook" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium shadow-lg shadow-indigo-500/20 flex items-center space-x-2 transition">
+          <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+          <span>Simulate Webhook & Replay</span>
+        </button>
+      </div>
+
+      <div id="webhook-timeline-container" class="card p-6 bg-slate-900 border-slate-800 space-y-4 text-xs">
+        <div class="text-slate-400 italic">Click "Simulate Webhook & Replay" to run resilience test.</div>
+      </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- TAB 5: BATCH COUNTERFACTUAL BENCHMARK (M9) -->
+    <!-- ================================================================= -->
+    <div id="view-eval-demo" class="space-y-6 hidden">
+      <div class="card p-6 bg-slate-900 border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">MILESTONE 9 EVALUATION</span>
+            <span class="text-xs text-slate-400 font-mono">Paired Counterfactual Simulation (Seed = 42)</span>
+          </div>
+          <h1 class="text-xl font-bold text-white mt-1">3-Way Policy Benchmark Lift Analysis (Synthetic)</h1>
+          <p class="text-xs text-slate-400 mt-1">
+            Runs 20 synthetic failure scenarios across NO_RECOVERY, FIXED_RETRY, and MANDATESHIELD under identical seeds.
+          </p>
+        </div>
+        <button onclick="runBatchEvaluation()" id="btn-run-eval" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium shadow-lg shadow-emerald-500/20 flex items-center space-x-2 transition">
+          <i data-lucide="bar-chart-3" class="h-4 w-4"></i>
+          <span>Run Batch Evaluation (20 Scenarios)</span>
+        </button>
+      </div>
+
+      <!-- 3-Way Policy Comparison Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="eval-cards-container">
+        <!-- Policy A: NO_RECOVERY -->
+        <div class="card p-5 bg-slate-900 border-slate-800 space-y-4">
+          <div class="border-b border-slate-800 pb-2">
+            <div class="text-xs font-bold text-slate-400 uppercase">Policy A</div>
+            <div class="text-base font-bold text-white">NO RECOVERY</div>
+            <div class="text-[11px] text-slate-500">Zero intervention baseline</div>
+          </div>
+          <div class="space-y-2 text-xs font-mono">
+            <div class="flex justify-between"><span>Recovered Principal:</span> <strong class="text-white" id="eval-no-gross">₹0.00</strong></div>
+            <div class="flex justify-between"><span>Net Recovery:</span> <strong class="text-white" id="eval-no-net">₹0.00</strong></div>
+            <div class="flex justify-between"><span>Recovery Rate:</span> <strong class="text-slate-400" id="eval-no-rate">0.0%</strong></div>
+            <div class="flex justify-between"><span>Retries Attempted:</span> <strong class="text-slate-400" id="eval-no-retries">0</strong></div>
+            <div class="flex justify-between"><span>Contact Index:</span> <strong class="text-slate-400" id="eval-no-contact">0.0</strong></div>
+          </div>
+        </div>
+
+        <!-- Policy B: FIXED_RETRY -->
+        <div class="card p-5 bg-slate-900 border-slate-800 space-y-4">
+          <div class="border-b border-slate-800 pb-2">
+            <div class="text-xs font-bold text-amber-400 uppercase">Policy B</div>
+            <div class="text-base font-bold text-white">FIXED RETRY</div>
+            <div class="text-[11px] text-slate-500">Naive 24h schedule (3 attempts)</div>
+          </div>
+          <div class="space-y-2 text-xs font-mono">
+            <div class="flex justify-between"><span>Recovered Principal:</span> <strong class="text-white" id="eval-fixed-gross">--</strong></div>
+            <div class="flex justify-between"><span>Net Recovery:</span> <strong class="text-white" id="eval-fixed-net">--</strong></div>
+            <div class="flex justify-between"><span>Recovery Rate:</span> <strong class="text-amber-400" id="eval-fixed-rate">--</strong></div>
+            <div class="flex justify-between"><span>Retries Attempted:</span> <strong class="text-rose-400" id="eval-fixed-retries">--</strong></div>
+            <div class="flex justify-between"><span>Contact Index:</span> <strong class="text-rose-400" id="eval-fixed-contact">--</strong></div>
+          </div>
+        </div>
+
+        <!-- Policy C: MANDATESHIELD -->
+        <div class="card p-5 bg-slate-900 border-blue-600/50 space-y-4 card-glow">
+          <div class="border-b border-slate-800 pb-2">
+            <div class="text-xs font-bold text-blue-400 uppercase">Policy C</div>
+            <div class="text-base font-bold text-blue-400">MANDATESHIELD</div>
+            <div class="text-[11px] text-slate-400">Context-Aware AI + Policy Guardian</div>
+          </div>
+          <div class="space-y-2 text-xs font-mono">
+            <div class="flex justify-between"><span>Recovered Principal:</span> <strong class="text-emerald-400" id="eval-ms-gross">--</strong></div>
+            <div class="flex justify-between"><span>Net Recovery:</span> <strong class="text-emerald-400" id="eval-ms-net">--</strong></div>
+            <div class="flex justify-between"><span>Recovery Rate:</span> <strong class="text-blue-400" id="eval-ms-rate">--</strong></div>
+            <div class="flex justify-between"><span>Retries Attempted:</span> <strong class="text-slate-300" id="eval-ms-retries">--</strong></div>
+            <div class="flex justify-between"><span>Contact Index:</span> <strong class="text-emerald-400" id="eval-ms-contact">--</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lift Summary & Action Distribution -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="card p-5 bg-slate-900 border-slate-800 space-y-3">
+          <h2 class="text-sm font-semibold text-white">Simulated Counterfactual Lift</h2>
+          <div class="space-y-2 text-xs font-mono" id="eval-lift-container">
+            <div class="p-3 bg-slate-950 rounded border border-slate-800 text-slate-400 italic">
+              Run evaluation to view simulated incremental lift metrics.
+            </div>
+          </div>
+        </div>
+
+        <div class="card p-5 bg-slate-900 border-slate-800 space-y-3">
+          <h2 class="text-sm font-semibold text-white">MandateShield Action Distribution</h2>
+          <div class="space-y-2 text-xs font-mono" id="eval-actions-container">
+            <div class="p-3 bg-slate-950 rounded border border-slate-800 text-slate-400 italic">
+              Proves MandateShield chooses intelligent actions (WAIT, SWITCH, STOP) instead of blind retrying.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
