@@ -299,24 +299,66 @@ async function runWebhookDemo() {
     const res = await fetch('/api/demo/webhook-resilience', { method: 'POST' });
     const data = await res.json();
 
+    // Populate Decision Context & Checklist
+    if (data.decision_context) {
+      const dc = data.decision_context;
+      const elStage1 = document.getElementById('webhook-stage1-status');
+      const elStage2 = document.getElementById('webhook-stage2-status');
+      const elStage3 = document.getElementById('webhook-stage3-status');
+      const elHmac = document.getElementById('webhook-check-hmac');
+      const elAttempt = document.getElementById('webhook-check-attempt');
+      const elAmount = document.getElementById('webhook-check-amount');
+      const elDedup = document.getElementById('webhook-check-dedup');
+
+      if (elStage1) elStage1.innerText = dc.execution_status || 'AMBIGUOUS_TIMEOUT';
+      if (elStage2) elStage2.innerText = dc.security_status || 'HMAC-SHA256 VERIFIED';
+      if (elStage3) elStage3.innerText = dc.duplicate_status || 'DUPLICATE IGNORED';
+
+      if (dc.checks && dc.checks.length >= 4) {
+        if (elHmac) elHmac.innerText = 'sha256=VERIFIED';
+        if (elAttempt) elAttempt.innerText = dc.checks[0].detail || 'att_resilience_01 matched';
+        if (elAmount) elAmount.innerText = dc.checks[1].detail || '₹7,999.00 exact match';
+        if (elDedup) elDedup.innerText = dc.checks[3].detail || 'evt_rzp_async_9981 cached';
+      }
+    }
+
+    // Populate Outcome Summary
+    if (data.outcome_summary) {
+      const oc = data.outcome_summary;
+      const elState = document.getElementById('webhook-out-state');
+      const elRecovered = document.getElementById('webhook-out-recovered');
+      const elCost = document.getElementById('webhook-out-cost');
+      const elNet = document.getElementById('webhook-out-net');
+      const elFinal = document.getElementById('webhook-out-final');
+
+      if (elState) elState.innerText = `SETTLED: ${oc.final_state}`;
+      if (elRecovered) elRecovered.innerText = oc.recovered_principal || '₹7,999.00';
+      if (elCost) elCost.innerText = oc.simulated_operational_cost || '₹5.00';
+      if (elNet) elNet.innerText = oc.net_recovery || '₹7,994.00';
+      if (elFinal) elFinal.innerText = oc.final_state || 'RECOVERED';
+    }
+
+    // Render Timeline
     const container = document.getElementById('webhook-timeline-container');
-    container.innerHTML = data.timeline.map((evt, idx) => `
-      <div class="p-3 bg-slate-950 rounded border border-slate-800 flex items-start space-x-3">
-        <div class="w-5 h-5 rounded-full bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-mono font-bold text-xs shrink-0 mt-0.5">
-          ${idx + 1}
-        </div>
-        <div class="flex-1 space-y-1">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-slate-200">${evt.title}</span>
-            <span class="text-[10px] text-slate-400 font-mono">${evt.timestamp}</span>
+    if (container && data.timeline) {
+      container.innerHTML = data.timeline.map((evt, idx) => `
+        <div class="p-3.5 bg-slate-950 rounded-lg border border-slate-800 flex items-start space-x-3 transition hover:border-slate-700">
+          <div class="w-6 h-6 rounded-full bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-mono font-bold text-xs shrink-0 mt-0.5">
+            ${idx + 1}
           </div>
-          <p class="text-slate-300">${evt.description}</p>
-          <div class="pt-1 flex flex-wrap gap-2 text-[11px] font-mono text-slate-400">
-            ${Object.entries(evt.details).map(([k, v]) => `<span class="bg-slate-900 px-2 py-0.5 rounded border border-slate-800">${k}: <strong class="text-slate-200">${v}</strong></span>`).join('')}
+          <div class="flex-1 space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-slate-200 text-xs">${evt.title}</span>
+              <span class="text-[10px] text-slate-400 font-mono">${evt.timestamp}</span>
+            </div>
+            <p class="text-slate-300 text-xs">${evt.description}</p>
+            <div class="pt-1 flex flex-wrap gap-2 text-[11px] font-mono text-slate-400">
+              ${Object.entries(evt.details).map(([k, v]) => `<span class="bg-slate-900 px-2 py-0.5 rounded border border-slate-800">${k}: <strong class="text-slate-200">${v}</strong></span>`).join('')}
+            </div>
           </div>
         </div>
-      </div>
-    `).join('');
+      `).join('');
+    }
 
     loadDashboardStats();
   } catch (err) {

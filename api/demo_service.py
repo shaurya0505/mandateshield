@@ -744,19 +744,26 @@ class DemoService:
         )
 
         # 1. Executor encounters a 504 Gateway Timeout
+        case.record_attempt(clock.now())
+        case.record_cost(500)
+        case.transition_to(RecoveryState.RECOVERY_ATTEMPTED, has_authorization=True)
+        case.transition_to(RecoveryState.ESCALATED)
+
         timeline.append(
             DemoTimelineEvent(
                 timestamp="2026-09-02 10:00:00 UTC",
                 stage="GATEWAY_TIMEOUT",
                 title="Gateway 504 Timeout on Debit",
-                description="Bank rail dropped socket connection during debit dispatch. Ambiguous state detected.",
+                description="Bank rail dropped socket connection during debit dispatch. Ambiguous state detected. Case escalated with zero blind retries.",
                 status="AMBIGUOUS_TIMEOUT",
                 badge_color="amber",
-                details={"case_state": "ESCALATED", "auto_retry_prevented": True},
+                details={
+                    "case_state": "ESCALATED",
+                    "safety_decision": "NO_BLIND_RETRY",
+                    "auto_retry_prevented": True,
+                },
             )
         )
-        case.transition_to(RecoveryState.RECOVERY_ATTEMPTED, has_authorization=True)
-        case.transition_to(RecoveryState.ESCALATED)
 
         attempt = PaymentAttempt(
             id="att_resilience_01",
@@ -793,12 +800,13 @@ class DemoService:
                 timestamp="2026-09-02 10:00:05 UTC",
                 stage="WEBHOOK_INGESTION",
                 title="Async Webhook: SETTLED_SUCCESS",
-                description="HMAC verified. Ambiguous payment correlated and reconciled to RECOVERED.",
+                description="HMAC-SHA256 verified. Ambiguous payment correlated to attempt att_resilience_01 and reconciled to RECOVERED.",
                 status="SETTLED",
                 badge_color="emerald",
                 details={
                     "reconciliation_status": res1.status.value,
-                    "recovered_amount": "₹7,999.00",
+                    "recovered_principal": "₹7,999.00",
+                    "hmac_signature": "sha256=VERIFIED",
                 },
             )
         )
@@ -811,18 +819,42 @@ class DemoService:
                 timestamp="2026-09-02 10:00:15 UTC",
                 stage="DEDUPLICATION_REPLAY",
                 title="Duplicate Webhook: IGNORED (No-Op)",
-                description=f"Provider re-delivered event '{webhook_event.provider_event_id}'. Deduplication layer ignored it. ₹0 double counted.",
+                description=f"Provider re-delivered event '{webhook_event.provider_event_id}'. Process-local deduplication layer recognized event ID and safely ignored it. ₹0 double counted.",
                 status="DUPLICATE_IGNORED",
                 badge_color="indigo",
                 details={
                     "is_duplicate": True,
                     "double_counting_prevented": True,
-                    "final_recovered_amount": "₹7,999.00 (Exactly Once)",
+                    "final_recovered_amount": "₹7,999.00 (Process-Local Deduplicated)",
                 },
             )
         )
 
         self._cases[case.id] = case
+
+        decision_context = {
+            "execution_status": "AMBIGUOUS_TIMEOUT",
+            "safety_action": "NO_BLIND_RETRY",
+            "safety_callout": "Payment outcome is ambiguous. MandateShield waits for authoritative settlement evidence.",
+            "security_status": "HMAC-SHA256 VERIFIED",
+            "security_note": "Provider event signature verified before reconciliation (Simulated Verifier).",
+            "checks": [
+                {"name": "Payment Attempt Correlated", "status": "PASSED", "detail": f"Attempt: {attempt.id}"},
+                {"name": "Amount Integrity Verified", "status": "PASSED", "detail": "₹7,999.00 exact match"},
+                {"name": "Outcome Normalized", "status": "PASSED", "detail": "PAYMENT_CAPTURED -> SUCCESS"},
+                {"name": "Process-Local Deduplication", "status": "PASSED", "detail": f"Event {webhook_event.provider_event_id} cached"},
+            ],
+            "duplicate_status": "DUPLICATE WEBHOOK IGNORED",
+            "duplicate_note": f"Same provider event ID ('{webhook_event.provider_event_id}') was already processed. Replay safely ignored.",
+            "architecture_principle": "Execute cautiously. Reconcile deterministically.",
+        }
+
+        outcome_summary = {
+            "recovered_principal": f"₹{case.recovered_amount_in_paisa / 100:,.2f}",
+            "simulated_operational_cost": f"₹{case.recovery_cost_in_paisa / 100:,.2f}",
+            "net_recovery": f"₹{(case.recovered_amount_in_paisa - case.recovery_cost_in_paisa) / 100:,.2f}",
+            "final_state": case.status.value,
+        }
 
         return DemoExecutionReport(
             scenario_id="scen_resilience_03",
@@ -839,6 +871,8 @@ class DemoService:
             recovered_amount_in_paisa=case.recovered_amount_in_paisa,
             operational_cost_in_paisa=case.recovery_cost_in_paisa,
             net_recovered_in_paisa=case.recovered_amount_in_paisa - case.recovery_cost_in_paisa,
+            decision_context=decision_context,
+            outcome_summary=outcome_summary,
             timeline=timeline,
         )
 

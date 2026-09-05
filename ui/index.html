@@ -705,15 +705,16 @@
     <!-- TAB 4: WEBHOOK & RESILIENCE DEMO -->
     <!-- ================================================================= -->
     <div id="view-webhook-demo" class="space-y-6 hidden">
+      <!-- Header -->
       <div class="card p-6 bg-slate-900 border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div class="flex items-center space-x-2">
-            <span class="badge bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">RESILIENCE & DEDUPLICATION</span>
-            <span class="text-xs text-slate-400 font-mono">Gateway Timeout & Webhook Reconciliation</span>
+            <span class="badge bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">SYNTHETIC RESILIENCE SCENARIO</span>
+            <span class="text-xs text-slate-400 font-mono">Customer: Rajesh Khanna | HDFC Card Mandate (Active)</span>
           </div>
-          <h1 class="text-xl font-bold text-white mt-1">Asynchronous Settlement & Duplicate Protection</h1>
+          <h1 class="text-xl font-bold text-white mt-1">Rajesh Khanna (Synthetic) — Webhook Reconciliation & Deduplication (₹7,999.00)</h1>
           <p class="text-xs text-slate-400 mt-1">
-            Simulates a 504 gateway timeout, asynchronous webhook arrival, and deduplication against repeated deliveries.
+            Demonstrates timeout ambiguity handling (NO BLIND RETRY), cryptographic HMAC-SHA256 verification, asynchronous settlement to RECOVERED, and replay deduplication.
           </p>
         </div>
         <button onclick="runWebhookDemo()" id="btn-run-webhook" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium shadow-lg shadow-indigo-500/20 flex items-center space-x-2 transition">
@@ -722,9 +723,181 @@
         </button>
       </div>
 
-      <div id="webhook-timeline-container" class="card p-6 bg-slate-900 border-slate-800 space-y-4 text-xs">
-        <div class="text-slate-400 italic">Click "Simulate Webhook & Replay" to run resilience test.</div>
+      <!-- Core Architectural Invariant Callout -->
+      <div class="card p-4 bg-slate-950 border-slate-800 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 bg-indigo-500/10 rounded-lg text-indigo-400 border border-indigo-500/20">
+            <i data-lucide="git-pull-request" class="h-5 w-5"></i>
+          </div>
+          <div>
+            <div class="text-xs font-bold text-white font-mono uppercase tracking-wider">
+              Core Principle: Execute Cautiously. Reconcile Deterministically.
+            </div>
+            <div class="text-[11px] text-slate-400 mt-0.5">
+              Payment outcome is ambiguous. MandateShield waits for authoritative settlement evidence before taking further action.
+            </div>
+          </div>
+        </div>
+        <span class="badge bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 font-mono text-[10px] hidden md:inline-block">
+          NO BLIND RETRY
+        </span>
       </div>
+
+      <!-- 3-Stage Lifecycle Flow Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+        <!-- Stage 1: Cautious Execution -->
+        <div class="card p-5 bg-slate-900 border-slate-800 space-y-3 border-l-4 border-l-amber-500">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider font-mono">1. Cautious Execution</h2>
+            <span class="badge bg-amber-500/10 text-amber-400 border border-amber-500/20 font-mono text-[10px]" id="webhook-stage1-status">
+              AMBIGUOUS_TIMEOUT
+            </span>
+          </div>
+          <div class="p-2.5 bg-slate-950 rounded border border-slate-800">
+            <div class="text-[10px] text-slate-400 uppercase font-mono">Safety Decision:</div>
+            <div class="text-sm font-bold font-mono text-amber-400 mt-0.5 flex items-center space-x-1.5">
+              <i data-lucide="shield-alert" class="h-4 w-4"></i>
+              <span>NO BLIND RETRY</span>
+            </div>
+          </div>
+          <p class="text-slate-300 text-xs leading-relaxed">
+            Bank rail connection timed out (504). Outcome is ambiguous. Case safely moved to <code class="text-amber-300">ESCALATED</code> without firing speculative retries.
+          </p>
+        </div>
+
+        <!-- Stage 2: Webhook Reconciliation -->
+        <div class="card p-5 bg-slate-900 border-slate-800 space-y-3 border-l-4 border-l-emerald-500">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <h2 class="text-xs font-bold text-emerald-400 uppercase tracking-wider font-mono">2. Webhook Ingestion</h2>
+            <span class="badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono text-[10px]" id="webhook-stage2-status">
+              HMAC-SHA256 VERIFIED
+            </span>
+          </div>
+          <div class="p-2.5 bg-slate-950 rounded border border-slate-800">
+            <div class="text-[10px] text-slate-400 uppercase font-mono">Settlement Result:</div>
+            <div class="text-sm font-bold font-mono text-emerald-400 mt-0.5 flex items-center space-x-1.5">
+              <i data-lucide="check-circle" class="h-4 w-4"></i>
+              <span>SETTLED: RECOVERED</span>
+            </div>
+          </div>
+          <p class="text-slate-300 text-xs leading-relaxed">
+            Signed <code class="text-slate-200">payment.captured</code> webhook arrived. Signature validated, attempt correlated, and case settled to <code class="text-emerald-300">RECOVERED</code>.
+          </p>
+        </div>
+
+        <!-- Stage 3: Replay Deduplication -->
+        <div class="card p-5 bg-slate-900 border-slate-800 space-y-3 border-l-4 border-l-indigo-500">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <h2 class="text-xs font-bold text-indigo-400 uppercase tracking-wider font-mono">3. Replay Deduplication</h2>
+            <span class="badge bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-mono text-[10px]" id="webhook-stage3-status">
+              DUPLICATE IGNORED
+            </span>
+          </div>
+          <div class="p-2.5 bg-slate-950 rounded border border-slate-800">
+            <div class="text-[10px] text-slate-400 uppercase font-mono">Deduplication Gate:</div>
+            <div class="text-sm font-bold font-mono text-indigo-400 mt-0.5 flex items-center space-x-1.5">
+              <i data-lucide="copy-check" class="h-4 w-4"></i>
+              <span>PROCESS-LOCAL NO-OP</span>
+            </div>
+          </div>
+          <p class="text-slate-300 text-xs leading-relaxed">
+            Identical provider event re-delivered. Process-local deduplication cache detected existing event ID. Safely ignored (₹0 double counted).
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Security & Integrity Checklist Grid -->
+      <div class="card p-5 bg-slate-900 border-slate-800 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <h2 class="text-sm font-semibold text-white flex items-center space-x-2">
+            <i data-lucide="shield-check" class="h-4 w-4 text-emerald-400"></i>
+            <span>Security & Reconciliation Integrity Checklist</span>
+          </h2>
+          <span class="badge bg-slate-800 text-slate-300 font-mono text-[11px]">
+            Deterministic Domain Checks
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs font-mono">
+          <div class="p-3 bg-slate-950 rounded border border-slate-800">
+            <div class="flex items-center space-x-1.5 text-emerald-400 font-bold">
+              <i data-lucide="check" class="h-4 w-4"></i>
+              <span>HMAC-SHA256 Signature</span>
+            </div>
+            <div class="text-slate-400 text-[11px] mt-1" id="webhook-check-hmac">sha256=VERIFIED</div>
+          </div>
+          <div class="p-3 bg-slate-950 rounded border border-slate-800">
+            <div class="flex items-center space-x-1.5 text-emerald-400 font-bold">
+              <i data-lucide="check" class="h-4 w-4"></i>
+              <span>Attempt Correlated</span>
+            </div>
+            <div class="text-slate-400 text-[11px] mt-1" id="webhook-check-attempt">att_resilience_01 matched</div>
+          </div>
+          <div class="p-3 bg-slate-950 rounded border border-slate-800">
+            <div class="flex items-center space-x-1.5 text-emerald-400 font-bold">
+              <i data-lucide="check" class="h-4 w-4"></i>
+              <span>Amount Integrity</span>
+            </div>
+            <div class="text-slate-400 text-[11px] mt-1" id="webhook-check-amount">₹7,999.00 exact match</div>
+          </div>
+          <div class="p-3 bg-slate-950 rounded border border-slate-800">
+            <div class="flex items-center space-x-1.5 text-emerald-400 font-bold">
+              <i data-lucide="check" class="h-4 w-4"></i>
+              <span>Replay Deduplicated</span>
+            </div>
+            <div class="text-slate-400 text-[11px] mt-1" id="webhook-check-dedup">evt_rzp_async_9981 cached</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Financial Outcome Card -->
+      <div class="card p-5 bg-slate-900 border-slate-800 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <h2 class="text-sm font-semibold text-white flex items-center space-x-2">
+            <i data-lucide="coins" class="h-4 w-4 text-emerald-400"></i>
+            <span>Final Reconciled Settlement Outcome</span>
+          </h2>
+          <span class="badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono text-xs font-bold" id="webhook-out-state">
+            SETTLED: RECOVERED
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+          <div class="p-3 bg-slate-950 rounded border border-slate-800">
+            <div class="text-slate-400 text-[11px]">Recovered Principal</div>
+            <div class="font-bold font-mono text-emerald-400 text-lg mt-0.5" id="webhook-out-recovered">₹7,999.00</div>
+          </div>
+          <div class="p-3 bg-slate-950 rounded border border-slate-800">
+            <div class="text-slate-400 text-[11px]">Simulated Operational Cost</div>
+            <div class="font-bold font-mono text-amber-400 text-lg mt-0.5" id="webhook-out-cost">₹5.00</div>
+          </div>
+          <div class="p-3 bg-slate-950 rounded border border-slate-800">
+            <div class="text-slate-400 text-[11px]">Net Recovery (Principal - Cost)</div>
+            <div class="font-bold font-mono text-emerald-400 text-lg mt-0.5" id="webhook-out-net">₹7,994.00</div>
+          </div>
+          <div class="p-3 bg-slate-950 rounded border border-slate-800">
+            <div class="text-slate-400 text-[11px]">Final Settlement State</div>
+            <div class="font-bold font-mono text-white text-lg mt-0.5" id="webhook-out-final">RECOVERED</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step-by-Step Audit Trail -->
+      <div class="card p-5 bg-slate-900 border-slate-800 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <h2 class="text-sm font-semibold text-white flex items-center space-x-2">
+            <i data-lucide="clock" class="h-4 w-4 text-purple-400"></i>
+            <span>Step-by-Step Telemetry & Audit Trail</span>
+          </h2>
+          <span class="text-xs text-slate-400 font-mono">Deterministic Webhook Reconciler</span>
+        </div>
+        <div id="webhook-timeline-container" class="space-y-3 text-xs">
+          <div class="text-slate-400 italic">Click "Simulate Webhook & Replay" to run resilience test.</div>
+        </div>
+      </div>
+
     </div>
 
     <!-- ================================================================= -->
