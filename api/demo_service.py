@@ -648,6 +648,32 @@ class DemoService:
 
         self._cases[case.id] = case
 
+        # Decision Context for Safety Demo
+        failing_rules = [r for r in evaluation.evaluated_rules if not r.passed]
+        failing_rule = failing_rules[0] if failing_rules else None
+
+        decision_context = {
+            "proposed_action": hallucinated_ai_proposal.action.value,
+            "model_confidence": "0.95 (95% Model Confidence)",
+            "confidence_disclaimer": "Model self-reported confidence score — NOT a statistical recovery probability",
+            "planner_source": hallucinated_ai_proposal.planner_source.value,
+            "ai_rationale": hallucinated_ai_proposal.rationale,
+            "policy_verdict": evaluation.verdict.value,
+            "failing_rule_id": failing_rule.rule_id if failing_rule else "RULE-PROV-01",
+            "failing_rule_name": failing_rule.rule_name if failing_rule else "Mandate Active Status Check",
+            "rule_category": failing_rule.category.value if failing_rule else "PROVIDER_RULE",
+            "rejection_reason": evaluation.rejection_reasons[0] if evaluation.rejection_reasons else "Mandate status is 'REVOKED'. Automated debit prohibited.",
+            "safety_boundary_note": "AI can recommend RETRY_NOW, but every debit action must pass deterministic policy authorization.",
+        }
+
+        outcome_summary = {
+            "debit_attempted": "₹0.00",
+            "recovered_principal": "₹0.00",
+            "simulated_operational_cost": "₹0.00",
+            "net_recovery": "₹0.00",
+            "final_state": case.status.value,
+        }
+
         return DemoExecutionReport(
             scenario_id="scen_safety_02",
             scenario_name="Policy Guardian Safety Interception (Revoked Mandate)",
@@ -663,6 +689,8 @@ class DemoService:
             recovered_amount_in_paisa=0,
             operational_cost_in_paisa=0,
             net_recovered_in_paisa=0,
+            decision_context=decision_context,
+            outcome_summary=outcome_summary,
             timeline=timeline,
         )
 

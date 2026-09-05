@@ -115,11 +115,11 @@
 
         <div class="card p-5 bg-slate-900/90 border-slate-800">
           <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
-            <span>Policy Interceptions</span>
-            <i data-lucide="shield-alert" class="h-4 w-4 text-purple-400"></i>
+            <span>Policy Protected</span>
+            <i data-lucide="shield-check" class="h-4 w-4 text-purple-400"></i>
           </div>
-          <div class="mt-2 text-2xl font-bold font-mono text-purple-400">100%</div>
-          <div class="mt-1 text-xs text-slate-400">0 unverified debits executed</div>
+          <div class="mt-2 text-2xl font-bold font-mono text-purple-400">Unauthorized Debits: 0</div>
+          <div class="mt-1 text-xs text-slate-400">Deterministic policy gate verified</div>
         </div>
       </div>
 
@@ -531,15 +531,16 @@
     <!-- TAB 3: SAFETY BARRIER DEMO (AI BLOCKED BY POLICY) -->
     <!-- ================================================================= -->
     <div id="view-safety-demo" class="space-y-6 hidden">
+      <!-- Header -->
       <div class="card p-6 bg-slate-900 border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div class="flex items-center space-x-2">
-            <span class="badge bg-rose-500/10 text-rose-400 border border-rose-500/20">SAFETY GUARDRAIL DEMO</span>
-            <span class="text-xs text-slate-400 font-mono">Synthetic Customer: Deepa Rao | Mandate: REVOKED</span>
+            <span class="badge bg-rose-500/10 text-rose-400 border border-rose-500/20">SYNTHETIC SAFETY SCENARIO</span>
+            <span class="text-xs text-slate-400 font-mono">Customer: Deepa Rao | Axis UPI AutoPay (REVOKED)</span>
           </div>
-          <h1 class="text-xl font-bold text-white mt-1">AI Proposal Intercepted & Blocked</h1>
+          <h1 class="text-xl font-bold text-white mt-1">Deepa Rao (Synthetic) — Mandate Revocation Safety Gate (₹999.00)</h1>
           <p class="text-xs text-slate-400 mt-1">
-            Demonstrates an aggressive AI model proposing RETRY_NOW on a revoked mandate. Policy Guardian intercepts and blocks debit.
+            Aggressive AI model proposes an immediate RETRY_NOW debit. Deterministic Policy Guardian intercepts and blocks authorization, ensuring ₹0 debit attempted.
           </p>
         </div>
         <button onclick="runSafetyDemo()" id="btn-run-safety" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-sm font-medium shadow-lg shadow-rose-500/20 flex items-center space-x-2 transition">
@@ -548,62 +549,155 @@
         </button>
       </div>
 
+      <!-- Core Architectural Invariant Callout -->
+      <div class="card p-4 bg-slate-950 border-slate-800 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 bg-purple-500/10 rounded-lg text-purple-400 border border-purple-500/20">
+            <i data-lucide="shield" class="h-5 w-5"></i>
+          </div>
+          <div>
+            <div class="text-xs font-bold text-white font-mono uppercase tracking-wider">
+              Core Invariant: AI Proposes. Deterministic Policy Authorizes.
+            </div>
+            <div class="text-[11px] text-slate-400 mt-0.5">
+              AI can recommend RETRY_NOW, but every debit action must pass deterministic policy authorization before dispatch.
+            </div>
+          </div>
+        </div>
+        <span class="badge bg-purple-500/10 text-purple-300 border border-purple-500/20 font-mono text-[10px] hidden md:inline-block">
+          FAIL-CLOSED POLICY GATE
+        </span>
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- AI Panel -->
+
+        <!-- Card 1: AI Proposal (Unsafe Advisory) -->
         <div class="card p-5 bg-slate-900 border-slate-800 space-y-4 border-l-4 border-l-rose-500">
           <div class="flex items-center justify-between border-b border-slate-800 pb-3">
             <h2 class="text-sm font-bold text-rose-400 flex items-center space-x-2">
               <i data-lucide="sparkles" class="h-4 w-4"></i>
-              <span>AI Proposal (Unsafe)</span>
+              <span>1. AI Advisory Proposal</span>
             </h2>
-            <span class="badge bg-rose-500/10 text-rose-400 font-mono">UNAUTHORIZED</span>
+            <span class="badge bg-rose-500/10 text-rose-400 border border-rose-500/20 font-mono text-[10px]">
+              NOT AUTHORIZATION
+            </span>
           </div>
           <div class="space-y-3 text-xs">
-            <div class="p-3 bg-slate-950 rounded border border-slate-800">
-              <div class="text-slate-400">Proposed Action:</div>
-              <div class="text-lg font-bold font-mono text-rose-400 mt-0.5">RETRY_NOW</div>
+            <div class="p-3 bg-slate-950 rounded border border-slate-800 flex items-center justify-between">
+              <div>
+                <span class="text-slate-400 text-[11px]">Recommended Action:</span>
+                <div class="text-lg font-bold font-mono text-rose-400 mt-0.5" id="safety-ai-action">RETRY_NOW</div>
+              </div>
+              <span class="badge bg-slate-800 text-slate-300 font-mono text-[10px]" id="safety-ai-source">GEMINI_LLM</span>
             </div>
             <div class="p-3 bg-slate-950 rounded border border-slate-800">
-              <div class="text-slate-400">Model Confidence:</div>
-              <div class="text-sm font-semibold font-mono text-slate-200 mt-0.5">0.95 (High Confidence Advisory)</div>
+              <div class="text-slate-400 text-[11px]">Model Confidence:</div>
+              <div class="text-sm font-semibold font-mono text-slate-200 mt-0.5" id="safety-ai-conf">95% (0.95 Model Score)</div>
+              <div class="text-[10px] text-amber-400/80 font-mono mt-1">
+                ⚠️ Model confidence score — NOT a statistical recovery probability.
+              </div>
             </div>
-            <div class="p-3 bg-slate-950 rounded border border-slate-800 text-slate-400">
-              AI attempted to force immediate retry despite mandate token being cancelled on the customer's banking app.
+            <div class="p-3 bg-slate-950 rounded border border-slate-800">
+              <div class="text-slate-400 text-[11px] mb-1">AI Rationale:</div>
+              <p class="text-slate-300 leading-relaxed font-mono text-[11px]" id="safety-ai-rationale">
+                Aggressive model proposal attempting immediate debit despite inactive mandate token.
+              </p>
+            </div>
+            <div class="text-[11px] text-slate-400 italic px-1">
+              AI has advisory capability only. Zero credentials or authority to dispatch debit commands.
             </div>
           </div>
         </div>
 
-        <!-- Policy Guardian Barrier Panel -->
+        <!-- Card 2: Deterministic Policy Guardian (Safety Barrier) -->
         <div class="card p-5 bg-slate-900 border-slate-800 space-y-4 border-l-4 border-l-emerald-500">
           <div class="flex items-center justify-between border-b border-slate-800 pb-3">
             <h2 class="text-sm font-bold text-emerald-400 flex items-center space-x-2">
               <i data-lucide="shield-check" class="h-4 w-4"></i>
-              <span>Policy Guardian Decision</span>
+              <span>2. Deterministic Policy Guardian</span>
             </h2>
-            <span class="badge bg-rose-500/20 text-rose-300 font-mono font-bold">VERDICT: BLOCKED</span>
+            <span class="badge bg-rose-500/20 text-rose-300 border border-rose-500/30 font-mono font-bold text-xs" id="safety-policy-verdict">
+              VERDICT: BLOCKED
+            </span>
           </div>
           <div class="space-y-3 text-xs">
             <div class="p-3 bg-slate-950 rounded border border-slate-800">
-              <div class="text-slate-400">Failing Rule:</div>
-              <div class="text-sm font-bold font-mono text-rose-400 mt-0.5">RULE-PROV-01: Mandate Active Status Check</div>
+              <div class="text-slate-400 text-[11px]">Failing Invariant Rule:</div>
+              <div class="text-sm font-bold font-mono text-rose-400 mt-0.5" id="safety-failing-rule">
+                RULE-PROV-01: Mandate Active Status Check
+              </div>
+              <div class="text-[10px] text-slate-400 font-mono mt-0.5" id="safety-rule-cat">
+                Provenance: PROVIDER_RULE
+              </div>
             </div>
             <div class="p-3 bg-slate-950 rounded border border-slate-800">
-              <div class="text-slate-400">Rejection Reason:</div>
-              <div class="text-xs font-mono text-slate-300 mt-0.5">Mandate status is 'REVOKED'. Automated debit prohibited.</div>
+              <div class="text-slate-400 text-[11px]">Rejection Reason:</div>
+              <div class="text-xs font-mono text-slate-200 mt-0.5" id="safety-rejection-reason">
+                Mandate status is 'REVOKED'. Automated debit prohibited.
+              </div>
             </div>
-            <div class="p-3 bg-slate-950 rounded border border-slate-800 text-emerald-400 font-medium">
-              ✓ Zero debits executed. Customer protected from illegal bank debits and unnecessary simulated retry costs. Case safely transitioned to STOPPED.
+            <div class="p-3 bg-slate-950 rounded border border-slate-800">
+              <div class="text-slate-400 text-[11px]">Policy Authorization:</div>
+              <div class="text-xs font-mono text-rose-400 font-bold mt-0.5" id="safety-auth-status">
+                DENIED (0 execution authorization tokens issued)
+              </div>
+            </div>
+            <div class="p-3 bg-emerald-950/20 rounded border border-emerald-500/20 text-emerald-400 text-xs">
+              ✓ Deterministic policy gate held. Zero debits executed. Customer protected from unauthorized debit attempts. Case safely transitioned to STOPPED.
             </div>
           </div>
         </div>
 
-        <!-- Safety Timeline -->
+        <!-- Card 3: Financial Consequence (Zero Side-Effects Grid) -->
         <div class="card p-5 bg-slate-900 border-slate-800 space-y-4 md:col-span-2">
-          <h2 class="text-sm font-semibold text-white">Safety Audit Trail</h2>
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h2 class="text-sm font-semibold text-white flex items-center space-x-2">
+              <i data-lucide="check-circle" class="h-4 w-4 text-emerald-400"></i>
+              <span>3. Financial & State Consequence (Zero Side Effects)</span>
+            </h2>
+            <span class="badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono text-xs font-bold" id="safety-out-state">
+              SETTLED: STOPPED
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div class="p-3 bg-slate-950 rounded border border-slate-800">
+              <div class="text-slate-400 text-[11px]">Debit Attempted</div>
+              <div class="font-bold font-mono text-emerald-400 text-lg mt-0.5" id="safety-out-attempted">₹0.00</div>
+              <div class="text-[10px] text-slate-500">Zero provider API calls</div>
+            </div>
+            <div class="p-3 bg-slate-950 rounded border border-slate-800">
+              <div class="text-slate-400 text-[11px]">Recovered Principal</div>
+              <div class="font-bold font-mono text-slate-300 text-lg mt-0.5" id="safety-out-recovered">₹0.00</div>
+              <div class="text-[10px] text-slate-500">No unrecoverable collection</div>
+            </div>
+            <div class="p-3 bg-slate-950 rounded border border-slate-800">
+              <div class="text-slate-400 text-[11px]">Simulated Operational Cost</div>
+              <div class="font-bold font-mono text-slate-300 text-lg mt-0.5" id="safety-out-cost">₹0.00</div>
+              <div class="text-[10px] text-slate-500">₹0 fees incurred</div>
+            </div>
+            <div class="p-3 bg-slate-950 rounded border border-slate-800">
+              <div class="text-slate-400 text-[11px]">Final Case State</div>
+              <div class="font-bold font-mono text-rose-400 text-lg mt-0.5" id="safety-out-final">STOPPED</div>
+              <div class="text-[10px] text-slate-500">Terminal safe shutdown</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4: Step-by-Step Safety Audit Trail -->
+        <div class="card p-5 bg-slate-900 border-slate-800 space-y-4 md:col-span-2">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h2 class="text-sm font-semibold text-white flex items-center space-x-2">
+              <i data-lucide="clock" class="h-4 w-4 text-purple-400"></i>
+              <span>4. Step-by-Step Safety Audit Trail</span>
+            </h2>
+            <span class="text-xs text-slate-400 font-mono">Deterministic Domain Telemetry</span>
+          </div>
           <div id="safety-timeline-container" class="space-y-3 text-xs">
             <div class="text-slate-400 italic">Click "Execute Safety Interception" to view audit trace.</div>
           </div>
         </div>
+
       </div>
     </div>
 

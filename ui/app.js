@@ -219,18 +219,62 @@ async function runSafetyDemo() {
     const res = await fetch('/api/demo/safety-block', { method: 'POST' });
     const data = await res.json();
 
+    // Populate Decision Context
+    if (data.decision_context) {
+      const dc = data.decision_context;
+      const elAiAction = document.getElementById('safety-ai-action');
+      const elAiSource = document.getElementById('safety-ai-source');
+      const elAiConf = document.getElementById('safety-ai-conf');
+      const elAiRationale = document.getElementById('safety-ai-rationale');
+      const elPolicyVerdict = document.getElementById('safety-policy-verdict');
+      const elFailingRule = document.getElementById('safety-failing-rule');
+      const elRuleCat = document.getElementById('safety-rule-cat');
+      const elRejectionReason = document.getElementById('safety-rejection-reason');
+      const elAuthStatus = document.getElementById('safety-auth-status');
+
+      if (elAiAction) elAiAction.innerText = dc.proposed_action || 'RETRY_NOW';
+      if (elAiSource) elAiSource.innerText = dc.planner_source || 'GEMINI_LLM';
+      if (elAiConf) elAiConf.innerText = dc.model_confidence || '95% (0.95 Model Score)';
+      if (elAiRationale) elAiRationale.innerText = dc.ai_rationale || '';
+      if (elPolicyVerdict) elPolicyVerdict.innerText = `VERDICT: ${dc.policy_verdict || 'BLOCKED'}`;
+      if (elFailingRule) elFailingRule.innerText = `${dc.failing_rule_id}: ${dc.failing_rule_name}`;
+      if (elRuleCat) elRuleCat.innerText = `Provenance: ${dc.rule_category}`;
+      if (elRejectionReason) elRejectionReason.innerText = dc.rejection_reason || '';
+      if (elAuthStatus) elAuthStatus.innerText = 'DENIED (0 execution authorization tokens issued)';
+    }
+
+    // Populate Outcome Summary
+    if (data.outcome_summary) {
+      const oc = data.outcome_summary;
+      const elState = document.getElementById('safety-out-state');
+      const elAttempted = document.getElementById('safety-out-attempted');
+      const elRecovered = document.getElementById('safety-out-recovered');
+      const elCost = document.getElementById('safety-out-cost');
+      const elFinal = document.getElementById('safety-out-final');
+
+      if (elState) elState.innerText = `SETTLED: ${oc.final_state}`;
+      if (elAttempted) elAttempted.innerText = oc.debit_attempted || '₹0.00';
+      if (elRecovered) elRecovered.innerText = oc.recovered_principal || '₹0.00';
+      if (elCost) elCost.innerText = oc.simulated_operational_cost || '₹0.00';
+      if (elFinal) elFinal.innerText = oc.final_state || 'STOPPED';
+    }
+
+    // Render Timeline
     const container = document.getElementById('safety-timeline-container');
     container.innerHTML = data.timeline.map((evt, idx) => `
-      <div class="p-3 bg-slate-950 rounded border border-slate-800 flex items-start space-x-3">
-        <div class="w-5 h-5 rounded-full bg-rose-600/20 text-rose-400 flex items-center justify-center font-mono font-bold text-xs shrink-0 mt-0.5">
+      <div class="p-3.5 bg-slate-950 rounded-lg border border-slate-800 flex items-start space-x-3 transition hover:border-slate-700">
+        <div class="w-6 h-6 rounded-full bg-rose-600/20 text-rose-400 flex items-center justify-center font-mono font-bold text-xs shrink-0 mt-0.5">
           ${idx + 1}
         </div>
         <div class="flex-1 space-y-1">
           <div class="flex items-center justify-between">
-            <span class="font-bold text-slate-200">${evt.title}</span>
+            <span class="font-bold text-slate-200 text-xs">${evt.title}</span>
             <span class="text-[10px] text-slate-400 font-mono">${evt.timestamp}</span>
           </div>
-          <p class="text-slate-300">${evt.description}</p>
+          <p class="text-slate-300 text-xs">${evt.description}</p>
+          <div class="pt-1 flex flex-wrap gap-2 text-[11px] font-mono text-slate-400">
+            ${Object.entries(evt.details).map(([k, v]) => `<span class="bg-slate-900 px-2 py-0.5 rounded border border-slate-800">${k}: <strong class="text-slate-200">${Array.isArray(v) ? v.join(', ') : v}</strong></span>`).join('')}
+          </div>
         </div>
       </div>
     `).join('');
