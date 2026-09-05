@@ -4,7 +4,7 @@
 
 MandateShield is an autonomous revenue recovery engine and safety guardian designed for recurring payments and subscription mandates in India (UPI AutoPay, Card Mandates, e-NACH).
 
-Instead of blindly retrying failed debits on fixed schedules, MandateShield combines **context-aware strategy planning** with a strict **deterministic Policy Guardian** to determine whether a failed payment should be retried, delayed to coincide with customer salary liquidity, routed through an alternative active mandate, nudged, escalated to concierge operations, or stopped.
+Instead of blindly retrying failed debits on fixed schedules, MandateShield combines **context-aware strategy planning** with a strict **deterministic Policy Guardian** to determine whether a failed payment should be retried, delayed to coincide with observed historical payment timing, routed through an alternative active mandate, nudged, escalated to concierge operations, or stopped.
 
 ---
 
@@ -48,10 +48,10 @@ py -m pytest tests/unit tests/integration -v
 
 The MandateShield Command Center UI provides interactive, real-time visual demonstration of the entire intelligence pipeline:
 
-### 1. Hero Flow: Liquidity Timing Recovery
+### 1. Hero Flow: Historical Payment Timing Recovery
 - **Customer:** Rahul Mehta | Subscription: ₹4,999.00 / month
 - **Failure:** `INSUFFICIENT_FUNDS` on August 28, 2026.
-- **Timing Signal:** Observed historical successful payments clustered on Day 1–2 of the month.
+- **Timing Signal:** Historical successful payment timing detected around Day 1–2.
 - **AI Proposal:** `WAIT_AND_RETRY` (Delay 4 days / 345,600s to September 1, 2026).
 - **Policy Guardian:** Evaluates rules $\rightarrow$ **APPROVED** $\rightarrow$ Issues authorization token.
 - **Execution & Settlement:** Case held in `RECOVERY_SCHEDULED` (0 debits), clock advances to Sept 1, scheduled debit dispatches $\rightarrow$ Webhook HMAC verified $\rightarrow$ Case settled to **`RECOVERED`**.
@@ -60,7 +60,7 @@ The MandateShield Command Center UI provides interactive, real-time visual demon
 - **Customer:** Deepa Rao | Mandate: `REVOKED` by customer on bank app | Amount: ₹999.00.
 - **Unsafe AI Proposal:** Simulated aggressive AI proposes `RETRY_NOW` (95% confidence).
 - **Policy Guardian:** Intercepts proposal $\rightarrow$ `RULE-PROV-01` (Mandate must be active) fails $\rightarrow$ **BLOCKED**.
-- **Financial Result:** **₹0 debited**, customer protected from harassment and bank bounce fees, case safely moved to **`STOPPED`**.
+- **Financial Result:** **₹0 debited**, customer protected from harassment and unnecessary simulated retry costs, case safely moved to **`STOPPED`**.
 
 ### 3. Webhook Resilience & Duplicate Protection
 - **Resilience:** Gateway socket drop (504 Timeout) moves case to `ESCALATED` (`AMBIGUOUS_TIMEOUT`) to prevent blind duplicate debits.
@@ -70,7 +70,7 @@ The MandateShield Command Center UI provides interactive, real-time visual demon
 ### 4. Benchmark Lift & Counterfactual Evaluation (Milestone 9)
 - Evaluates 20 balanced synthetic failure scenarios under 3 paired policies:
   1. `NO_RECOVERY` (Zero intervention baseline)
-  2. `FIXED_RETRY` (Naive 24h schedule up to 3 attempts)
+  2. `FIXED_RETRY` (Deterministic Fixed-Retry Baseline — schedule up to 3 attempts)
   3. `MANDATESHIELD` (Context-aware AI + Policy Guardian)
 - Computes Gross Recovery, Net Recovery (after fees), Value-Weighted Rate, Customer Contact/Harassment Index, and Unnecessary Retries Avoided.
 

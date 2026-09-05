@@ -24,6 +24,7 @@ from services.ai.deterministic_fallback_planner import DeterministicFallbackPlan
 from services.policy.policy_guardian import PolicyGuardian
 from services.executor.recovery_executor import RecoveryExecutor
 from services.reconciliation.webhook_reconciler import WebhookReconciler
+from services.evaluation.baselines import ScenarioRunner
 
 
 class DemoTimelineEvent(BaseModel):
@@ -51,6 +52,9 @@ class DemoExecutionReport(BaseModel):
     recovered_amount_in_paisa: int
     operational_cost_in_paisa: int
     net_recovered_in_paisa: int
+    decision_context: Dict[str, Any] = Field(default_factory=dict)
+    outcome_summary: Dict[str, Any] = Field(default_factory=dict)
+    counterfactual_preview: Dict[str, Any] = Field(default_factory=dict)
     timeline: List[DemoTimelineEvent]
 
 
@@ -227,7 +231,7 @@ class DemoService:
                 timestamp="2026-08-28 10:00:02 UTC",
                 stage="CONTEXT_ASSEMBLY",
                 title="Timing Window Signal Detected",
-                description="Observed historical salary/liquidity clustering around Day 1–2 of the month. Next optimal window: Sept 1, 2026.",
+                description="Historical successful payment timing detected around Day 1–2. Next actionable window: Sept 1, 2026.",
                 status="IDENTIFIED",
                 badge_color="indigo",
                 details={
@@ -247,7 +251,7 @@ class DemoService:
                 timestamp="2026-08-28 10:00:03 UTC",
                 stage="AI_PROPOSAL",
                 title="AI Advisory Generated",
-                description=f"Proposed Action: {proposal.action.value} | Strategy: Delay retry 4 days to coincide with salary liquidity window.",
+                description=f"Proposed Action: {proposal.action.value} | Strategy: Delay retry 4 days to align with the customer's historical successful payment window around September 1.",
                 status="PROPOSED",
                 badge_color="sky",
                 details={
@@ -301,7 +305,7 @@ class DemoService:
                 timestamp="2026-08-28 10:00:05 UTC",
                 stage="RECOVERY_SCHEDULED",
                 title="Recovery Scheduled",
-                description="Case safely parked in RECOVERY_SCHEDULED. Zero debit attempts executed outside the liquidity window.",
+                description="Case safely parked in RECOVERY_SCHEDULED. Zero debit attempts executed outside the historical payment window.",
                 status="SCHEDULED",
                 badge_color="purple",
                 details={
@@ -331,7 +335,7 @@ class DemoService:
                 timestamp="2026-09-01 10:00:00 UTC",
                 stage="RETRY_EXECUTION",
                 title="Scheduled Debit Executed",
-                description="Dispatched retry debit on HDFC Mandate during verified Day 1 liquidity window. Provider returned SUCCESS.",
+                description="Dispatched retry debit on HDFC Mandate during verified Day 1 historical payment window. Provider returned SUCCESS.",
                 status="EXECUTED",
                 badge_color="cyan",
                 details={
@@ -385,13 +389,94 @@ class DemoService:
         # Update global demo repository
         self._cases[case.id] = case
 
+        # Decision Intelligence Context (Task 3)
+        decision_context = {
+            "failure_category": normalized.category.value,
+            "historical_timing_window": "Day 1–2 of Month",
+            "next_actionable_window": "September 1, 2026",
+            "rail_health_status": f"{rail_health.issuer_bank.value} Rail: 100% Normal",
+            "retry_budget": f"{case.total_attempts} / 3 Allowed",
+            "revenue_at_risk": f"₹{case.revenue_at_risk_in_paisa / 100:,.2f}",
+            "recovery_priority": risk.priority_level.value,
+            "recovery_potential_score": f"{risk.recovery_potential_score}/100",
+            "selected_action": proposal.action.value,
+            "reason_codes": [r.value for r in proposal.reason_codes],
+            "rationale": "Delay retry by 4 days (345,600s) to align with the customer's historical successful payment window around September 1. Immediate retry falls outside the observed historical payment window and would consume a retry attempt unnecessarily.",
+            "planner_source": proposal.planner_source.value,
+            "model_confidence": f"{proposal.strategy_confidence:.2f}" if proposal.strategy_confidence is not None else "N/A",
+        }
+
+        # Decision -> Outcome Summary (Task 4)
+        outcome_summary = {
+            "decision": proposal.action.value,
+            "attempts": 1,
+            "recovered_principal": f"₹{case.recovered_amount_in_paisa / 100:,.2f}",
+            "simulated_operational_cost": f"₹{case.recovery_cost_in_paisa / 100:,.2f}",
+            "net_recovery": f"₹{(case.recovered_amount_in_paisa - case.recovery_cost_in_paisa) / 100:,.2f}",
+            "final_state": case.status.value,
+        }
+
+        # Paired Counterfactual Benchmark for this exact scenario (Task 5)
+        cf_clock_no = SimulationClock(datetime(2026, 8, 28, 10, 0, 0, tzinfo=timezone.utc))
+        cf_prov_no = SimulatedPaymentProvider(clock=cf_clock_no, seed=42)
+        cf_prov_no.register_mandate(mandate, liquidity_window_days=(1, 4))
+        cf_no = ScenarioRunner.run_no_recovery(
+            "scen_cf_no", "Hero No Recovery", customer, subscription, mandate, cf_prov_no, cf_clock_no
+        )
+
+        cf_clock_fixed = SimulationClock(datetime(2026, 8, 28, 10, 0, 0, tzinfo=timezone.utc))
+        cf_prov_fixed = SimulatedPaymentProvider(clock=cf_clock_fixed, seed=42)
+        cf_prov_fixed.register_mandate(mandate, liquidity_window_days=(1, 4))
+        cf_fixed = ScenarioRunner.run_fixed_retry(
+            "scen_cf_fixed", "Hero Fixed Retry", customer, subscription, mandate, cf_prov_fixed, cf_clock_fixed
+        )
+
+        cf_clock_ms = SimulationClock(datetime(2026, 8, 28, 10, 0, 0, tzinfo=timezone.utc))
+        cf_prov_ms = SimulatedPaymentProvider(clock=cf_clock_ms, seed=42)
+        cf_prov_ms.register_mandate(mandate, liquidity_window_days=(1, 4))
+        cf_ms = ScenarioRunner.run_mandateshield(
+            "scen_cf_ms", "Hero MandateShield", customer, subscription, [mandate], mandate, cf_prov_ms, cf_clock_ms, historical_successful_dates
+        )
+
+        counterfactual_preview = {
+            "no_recovery": {
+                "policy": "NO_RECOVERY",
+                "label": "No Recovery",
+                "attempts": cf_no.total_retries,
+                "recovered_principal": f"₹{cf_no.gross_recovered_amount_in_paisa / 100:,.2f}",
+                "simulated_operational_cost": f"₹{cf_no.operational_cost_in_paisa / 100:,.2f}",
+                "net_recovery": f"₹{cf_no.net_recovered_amount_in_paisa / 100:,.2f}",
+                "final_state": cf_no.final_case_state.value,
+            },
+            "fixed_retry": {
+                "policy": "FIXED_RETRY",
+                "label": "Deterministic Fixed-Retry Baseline",
+                "attempts": cf_fixed.total_retries,
+                "recovered_principal": f"₹{cf_fixed.gross_recovered_amount_in_paisa / 100:,.2f}",
+                "simulated_operational_cost": f"₹{cf_fixed.operational_cost_in_paisa / 100:,.2f}",
+                "net_recovery": f"₹{cf_fixed.net_recovered_amount_in_paisa / 100:,.2f}",
+                "final_state": cf_fixed.final_case_state.value,
+                "unnecessary_retries": cf_fixed.unnecessary_retries,
+            },
+            "mandateshield": {
+                "policy": "MANDATESHIELD",
+                "label": "MandateShield (Context-Aware)",
+                "attempts": cf_ms.total_retries,
+                "recovered_principal": f"₹{cf_ms.gross_recovered_amount_in_paisa / 100:,.2f}",
+                "simulated_operational_cost": f"₹{cf_ms.operational_cost_in_paisa / 100:,.2f}",
+                "net_recovery": f"₹{cf_ms.net_recovered_amount_in_paisa / 100:,.2f}",
+                "final_state": cf_ms.final_case_state.value,
+                "unnecessary_retries": cf_ms.unnecessary_retries,
+            },
+        }
+
         return DemoExecutionReport(
             scenario_id="scen_hero_01",
-            scenario_name="Liquidity Window Recovery (Hero Flow)",
+            scenario_name="Historical Payment Timing Recovery (Hero Flow)",
             customer_name="Rahul Mehta",
             amount_in_paisa=499900,
             amount_formatted="₹4,999.00",
-            failure_reason="INSUFFICIENT_FUNDS (Outside salary window)",
+            failure_reason="INSUFFICIENT_FUNDS (Outside historical payment window)",
             historical_window="Day 1–2 of Month",
             recommended_action="WAIT_AND_RETRY",
             policy_decision="APPROVED",
@@ -400,6 +485,9 @@ class DemoService:
             recovered_amount_in_paisa=case.recovered_amount_in_paisa,
             operational_cost_in_paisa=case.recovery_cost_in_paisa,
             net_recovered_in_paisa=case.recovered_amount_in_paisa - case.recovery_cost_in_paisa,
+            decision_context=decision_context,
+            outcome_summary=outcome_summary,
+            counterfactual_preview=counterfactual_preview,
             timeline=timeline,
         )
 
@@ -547,7 +635,7 @@ class DemoService:
                 timestamp="2026-09-02 10:00:03 UTC",
                 stage="TERMINAL_SAFETY",
                 title="Case Stopped (Zero Debit Side Effects)",
-                description="Case transitioned to STOPPED. Customer protected from illegal debit attempts and bank rejection penalties.",
+                description="Case transitioned to STOPPED. Customer protected from illegal debit attempts and unnecessary simulated retry costs.",
                 status="STOPPED",
                 badge_color="gray",
                 details={

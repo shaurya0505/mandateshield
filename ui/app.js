@@ -104,6 +104,101 @@ async function runHeroScenario() {
       </div>
     `).join('');
 
+    // Populate Decision Intelligence Panel (Why this Action?)
+    if (data.decision_context) {
+      const dc = data.decision_context;
+      const elFailure = document.getElementById('hero-di-failure');
+      const elTiming = document.getElementById('hero-di-timing');
+      const elWindow = document.getElementById('hero-di-window');
+      const elRail = document.getElementById('hero-di-rail');
+      const elBudget = document.getElementById('hero-di-budget');
+      const elRisk = document.getElementById('hero-di-risk');
+      const elPriority = document.getElementById('hero-di-priority');
+      const elAction = document.getElementById('hero-di-action');
+      const elRationale = document.getElementById('hero-di-rationale');
+
+      if (elFailure) elFailure.innerText = dc.failure_category || 'INSUFFICIENT_FUNDS';
+      if (elTiming) elTiming.innerText = dc.historical_timing_window || 'Day 1–2 of Month';
+      if (elWindow) elWindow.innerText = dc.next_actionable_window || 'September 1, 2026';
+      if (elRail) elRail.innerText = dc.rail_health_status || 'HDFC Rail: 100% Normal';
+      if (elBudget) elBudget.innerText = dc.retry_budget || '1 / 3 Allowed';
+      if (elRisk) elRisk.innerText = dc.revenue_at_risk || '₹4,999.00';
+      if (elPriority) elPriority.innerText = `${dc.recovery_priority} (Score: ${dc.recovery_potential_score})`;
+      if (elAction) elAction.innerText = dc.selected_action || 'WAIT_AND_RETRY';
+      if (elRationale) elRationale.innerText = dc.rationale || '';
+    }
+
+    // Populate Decision -> Outcome Summary Card
+    if (data.outcome_summary) {
+      const oc = data.outcome_summary;
+      const elDecision = document.getElementById('hero-out-decision');
+      const elAttempts = document.getElementById('hero-out-attempts');
+      const elRecovered = document.getElementById('hero-out-recovered');
+      const elCost = document.getElementById('hero-out-cost');
+      const elNet = document.getElementById('hero-out-net');
+      const elState = document.getElementById('hero-out-state');
+
+      if (elDecision) elDecision.innerText = oc.decision;
+      if (elAttempts) elAttempts.innerText = `${oc.attempts} Attempt`;
+      if (elRecovered) elRecovered.innerText = oc.recovered_principal;
+      if (elCost) elCost.innerText = oc.simulated_operational_cost;
+      if (elNet) elNet.innerText = oc.net_recovery;
+      if (elState) elState.innerText = `SETTLED: ${oc.final_state}`;
+    }
+
+    // Populate Paired Counterfactual Preview
+    if (data.counterfactual_preview) {
+      const cp = data.counterfactual_preview;
+      
+      // Policy A: No Recovery
+      if (cp.no_recovery) {
+        const no = cp.no_recovery;
+        const elNoAtt = document.getElementById('cf-no-attempts');
+        const elNoRec = document.getElementById('cf-no-recovered');
+        const elNoCost = document.getElementById('cf-no-cost');
+        const elNoNet = document.getElementById('cf-no-net');
+        const elNoStat = document.getElementById('cf-no-status');
+
+        if (elNoAtt) elNoAtt.innerText = no.attempts;
+        if (elNoRec) elNoRec.innerText = no.recovered_principal;
+        if (elNoCost) elNoCost.innerText = no.simulated_operational_cost;
+        if (elNoNet) elNoNet.innerText = no.net_recovery;
+        if (elNoStat) elNoStat.innerText = no.final_state;
+      }
+
+      // Policy B: Fixed Retry
+      if (cp.fixed_retry) {
+        const fix = cp.fixed_retry;
+        const elFixAtt = document.getElementById('cf-fixed-attempts');
+        const elFixRec = document.getElementById('cf-fixed-recovered');
+        const elFixCost = document.getElementById('cf-fixed-cost');
+        const elFixNet = document.getElementById('cf-fixed-net');
+        const elFixStat = document.getElementById('cf-fixed-status');
+
+        if (elFixAtt) elFixAtt.innerText = `${fix.attempts} (${fix.unnecessary_retries} unnecessary)`;
+        if (elFixRec) elFixRec.innerText = fix.recovered_principal;
+        if (elFixCost) elFixCost.innerText = fix.simulated_operational_cost;
+        if (elFixNet) elFixNet.innerText = fix.net_recovery;
+        if (elFixStat) elFixStat.innerText = fix.final_state;
+      }
+
+      // Policy C: MandateShield
+      if (cp.mandateshield) {
+        const ms = cp.mandateshield;
+        const elMsAtt = document.getElementById('cf-ms-attempts');
+        const elMsRec = document.getElementById('cf-ms-recovered');
+        const elMsCost = document.getElementById('cf-ms-cost');
+        const elMsNet = document.getElementById('cf-ms-net');
+        const elMsStat = document.getElementById('cf-ms-status');
+
+        if (elMsAtt) elMsAtt.innerText = `${ms.attempts} (${ms.unnecessary_retries} unnecessary)`;
+        if (elMsRec) elMsRec.innerText = ms.recovered_principal;
+        if (elMsCost) elMsCost.innerText = ms.simulated_operational_cost;
+        if (elMsNet) elMsNet.innerText = `+${ms.net_recovery}`;
+        if (elMsStat) elMsStat.innerText = ms.final_state;
+      }
+    }
+
     loadDashboardStats();
   } catch (err) {
     console.error('Error running hero scenario:', err);

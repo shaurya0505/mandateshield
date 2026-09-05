@@ -13,8 +13,8 @@ Rather than generating disparate datasets or making unfounded claims about produ
 | Policy | Behavior & Assumptions | Implementation Details |
 |---|---|---|
 | **`NO_RECOVERY`** | **Zero Intervention Baseline**<br>Observes the initial debit failure, records exposure, and performs zero retries or notifications. | Case remains in `RECOVERY_ELIGIBLE` with 0 recovered revenue and 0 operational costs. |
-| **`FIXED_RETRY`** | **Naive Schedule-Based Baseline**<br>Re-attempts debits on the primary mandate at fixed 24-hour intervals up to a maximum of 3 retries. Blind to liquidity timing, rail degradation, and alternate mandates. | Respects basic provider rules (e.g. stops on revoked mandates), incurs simulated debit fees (₹5.00/attempt), but lacks contextual intelligence. |
-| **`MANDATESHIELD`** | **Context-Aware Intelligent Recovery**<br>Evaluates factual context envelope, generates bounded strategy proposal, enforces deterministic Policy Guardian safety checks, executes via authorized executor, and reconciles asynchronously. | Employs `WAIT_AND_RETRY` (liquidity window timing), `SWITCH_PAYMENT_PATH` (rail outage bypass), `STOP_RECOVERY` (revoked mandates), and `ESCALATE_TO_HUMAN`. |
+| **`FIXED_RETRY`** | **Deterministic Fixed-Retry Baseline**<br>Re-attempts debits on the primary mandate at fixed 24-hour intervals up to a maximum of 3 retries. Blind to historical payment timing, rail degradation, and alternate mandates. | Respects basic provider rules (e.g. stops on revoked mandates), incurs simulated debit fees (₹5.00/attempt), but lacks contextual intelligence. |
+| **`MANDATESHIELD`** | **Context-Aware Intelligent Recovery**<br>Evaluates factual context envelope, generates bounded strategy proposal, enforces deterministic Policy Guardian safety checks, executes via authorized executor, and reconciles asynchronously. | Employs `WAIT_AND_RETRY` (historical payment window timing), `SWITCH_PAYMENT_PATH` (rail outage bypass), `STOP_RECOVERY` (revoked mandates), and `ESCALATE_TO_HUMAN`. |
 
 ---
 
